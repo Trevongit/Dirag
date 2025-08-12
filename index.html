@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dora's Math Quest: Integer Island Expedition 🚀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+
+    <!-- MathJax for LaTeX rendering -->
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']], // Define inline math delimiters
+          displayMath: [['$$', '$$'], ['\\[', '\\]']] // Define display math delimiters
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+    </script>
+    
+    <style>
+        /* Custom CSS for Dora's Math Quest */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom right, #87CEEB, #6A5ACD); /* Sky blue to deep purple for an adventure feel */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0.5rem; 
+            box-sizing: border-box;
+            color: #333;
+        }
+
+        .app-container {
+            background-color: #fff;
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            padding: 1.5rem; 
+            max-width: 98%; 
+            width: 800px; 
+            text-align: center;
+            position: relative;
+            overflow-y: auto; /* Allow the main container to scroll */
+            min-height: 650px;
+            max-height: 95vh; /* Limits overall app height, allowing scroll */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Align content to top for scrolling */
+            border: 5px solid #4F46E5; 
+        }
+
+        .dora-avatar {
+            font-size: 6rem;
+            margin-bottom: 1.5rem;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .btn {
+            @apply bg-indigo-600 text-white font-extrabold py-3 px-4 rounded-full shadow-xl transition duration-300 ease-in-out transform hover:scale-105 active:scale-95;
+            min-width: 120px; 
+            flex-grow: 1; 
+            max-width: 250px; 
+            margin: 0.4rem; 
+            border: 4px solid #3730A3; 
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            font-size: 0.85rem; 
+            white-space: normal; 
+            word-break: break-word; 
+        }
+
+        @media (min-width: 768px) {
+            .app-container {
+                padding: 3rem; 
+            }
+            .btn {
+                min-width: 200px; 
+                margin: 0.75rem;
+                font-size: 1.25rem; 
+                padding: 0.75rem 1.5rem; 
+            }
+        }
+
+        .btn-secondary {
+            @apply bg-green-600 border-green-800;
+        }
+        .btn-danger {
+            @apply bg-red-600 border-red-800;
+        }
+
+        .section-title {
+            @apply text-3xl md:text-4xl font-extrabold text-indigo-700 mb-4 md:mb-6; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Styles for consolidated content sections */
+        .content-section {
+            background-color: #f8f8ff; 
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        .content-section h3 {
+            @apply text-2xl md:text-3xl font-bold text-indigo-700 mb-3; 
+            text-align: center; 
+        }
+        .content-section p {
+            font-size: 1.1rem; 
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+            color: #444;
+            text-align: left; 
+        }
+        .content-section .example-math {
+            font-size: 1.4rem; 
+            padding: 0.5rem 1rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            background-color: #F3F4F6;
+            border-radius: 0.75rem;
+            border: 2px solid #D1D5DB;
+            text-align: center; 
+        }
+        .content-section .emoji-display {
+            font-size: 3rem; 
+            display: block;
+            text-align: center;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed #ccc;
+        }
+        .question-item:last-child {
+            border-bottom: none;
+        }
+        .question-item .question-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #222;
+        }
+        .question-item .answer-reveal {
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            color: #555;
+            text-align: left;
+        }
+
+        .feedback-message {
+            position: fixed; /* Fixed position over content */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 1.5rem 2rem; 
+            border-radius: 2rem;
+            font-size: 2rem; 
+            font-weight: bold;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+            z-index: 100;
+            border: 5px solid white;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        }
+
+        .feedback-message.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Removed progress bar, choices grid etc. as they are not on this main landing page */
+
+        /* Input field for interactive questions (future) */
+        .interactive-input {
+            margin-top: 0.75rem;
+            padding: 0.5rem 1rem;
+            border: 2px solid #a0aec0;
+            border-radius: 0.5rem;
+            width: calc(100% - 2rem); /* Account for padding */
+            max-width: 300px;
+            font-size: 1rem;
+            text-align: center;
+        }
+        .interactive-button {
+            @apply bg-blue-500 text-white py-2 px-4 rounded-md mt-2;
+        }
+
+        /* Screen management styles */
+        .screen {
+            display: none; /* Hide all screens by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%; /* Take full height of app-container */
+            width: 100%;
+        }
+        .screen.active {
+            display: flex; /* Show active screen */
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="appContainer"> 
+        <!-- Feedback Message Overlay -->
+        <div id="feedbackMessage" class="feedback-message"></div>
+
+        <!-- FULL LANDING PAGE: All Tutorial and Questions Content -->
+        <div id="fullLandingPageContent" class="screen active"> <!-- This is the initial "screen" -->
+            <h1 class="section-title">Dora's Math Quest: BIDMAS Expedition! 🚀</h1>
+            <p class="text-xl text-gray-700 mb-8 text-center">Hey Adventurer! I'm Dora, and Integer Island needs our help! Scroll down to master BIDMAS concepts and practice problems.</p>
+
+            <div id="tutorialSection" class="content-section">
+                <h3>BIDMAS Academy! 📖</h3>
+                <!-- Tutorial content will be dynamically inserted here -->
+            </div>
+
+            <div id="practiceSection" class="content-section">
+                <h3>Practice Challenges! 🧠</h3>
+                <p class="text-lg text-gray-600 mb-4 text-center">Here are some problems to test your understanding. Interactive questions can be built here later!</p>
+                <!-- Quiz questions (non-interactive) will be dynamically inserted here -->
+            </div>
+
+            <button id="goToProgressButton" class="btn my-6">View Progress & Report 📈</button>
+        </div>
+
+        <!-- Progress Screen -->
+        <div id="progressScreen" class="screen">
+            <h2 class="section-title">Your Expedition Log! ✨</h2>
+            <p class="text-xl text-gray-700 mb-4">Total Data Shards: <span id="progressPoints" class="font-bold text-blue-600">0</span></p>
+            <p class="text-xl text-gray-700 mb-4">Adventure Level: <span id="progressLevel" class="font-bold text-green-600">Beginner Explorer</span></p>
+            <p class="text-xl text-gray-700 mb-4">Daily Check-in Streak: <span id="progressStreak" class="font-bold text-red-600">0</span> 🔥</p>
+
+            <h3 class="text-3xl font-bold text-purple-600 mt-8 mb-4">Mastery Badges: 🏆</h3>
+            <div id="badgesDisplay" class="flex flex-wrap justify-center gap-4 mb-8">
+                <!-- Badges will be displayed here -->
+            </div>
+
+            <h3 class="text-3xl font-bold text-red-600 mt-8 mb-4">Areas to Re-Explore: 🚧</h3>
+            <ul id="troubledAreasList" class="list-disc list-inside text-xl text-gray-700 text-left w-full max-w-lg mx-auto">
+                <!-- Troubled areas will be listed here -->
+            </ul>
+
+            <button id="backToLandingButton" class="btn btn-danger mt-8">Back to Lessons</button>
+            <button id="sendReportButton" class="btn btn-secondary mt-4">Share Report 📧</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Global State ---
+        let appState = {
+            points: 0,
+            level: 1,
+            dailyStreak: 0,
+            lastPlayedDate: null,
+            badges: [], 
+            troubledAreas: {}, 
+            sessionHistory: [], 
+        };
+
+        // --- DOM Element References ---
+        const appContainer = document.getElementById('appContainer'); 
+        const fullLandingPageContent = document.getElementById('fullLandingPageContent'); // The new consolidated landing page
+        const tutorialSection = document.getElementById('tutorialSection'); // Div for tutorial content
+        const practiceSection = document.getElementById('practiceSection'); // Div for quiz content
+
+        const goToProgressButton = document.getElementById('goToProgressButton'); // Button to go to progress from landing page
+
+        const progressScreen = document.getElementById('progressScreen');
+
+        const pointsDisplay = document.getElementById('pointsDisplay');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const progressPoints = document.getElementById('progressPoints');
+        const progressLevel = document.getElementById('progressLevel');
+        const progressStreak = document.getElementById('progressStreak');
+        const badgesDisplay = document.getElementById('badgesDisplay');
+        const troubledAreasList = document.getElementById('troubledAreasList');
+
+        const backToLandingButton = document.getElementById('backToLandingButton'); // Renamed from backToMenu
+        const sendReportButton = document.getElementById('sendReportButton'); // Now on progress screen
+
+        const feedbackMessage = document.getElementById('feedbackMessage');
+
+        // --- Math Content ---
+        const tutorialTopics = [
+            {
+                id: 'bidmas_intro',
+                title: 'What is BIDMAS? 🤔',
+                steps: [
+                    { text: 'BIDMAS is our secret code to solve math problems! It tells us the correct order to do things.', emoji: '🔑' },
+                    { text: 'It stands for Brackets, Indices, Division/Multiplication, Addition/Subtraction. Let\'s break it down!', emoji: '🔍' }
+                ]
+            },
+            {
+                id: 'bidmas_brackets',
+                title: 'B is for Brackets! ($()$)',
+                steps: [
+                    { text: 'Always solve anything INSIDE brackets first. They\'re super important!', emoji: '🚧' },
+                    { text: 'Example: In $8-2\\times(4+2)$, we solve $(4+2)$ first, which is $6$.', example: '$8-2\\times(4+2) \\rightarrow 8-2\\times6$' }
+                ]
+            },
+            {
+                id: 'bidmas_indices',
+                title: 'I is for Indices! ($x^2$ or $\\sqrt{}$)',
+                steps: [
+                    { text: 'Indices are powers (like $x^2$) or square roots ($\\sqrt{}$). Do these next!', emoji: '📈' },
+                    { text: 'Example: In $(-2)^3 - 3 \\times -2$, we solve $(-2)^3$ first, which is $-8$.', example: '$(-2)^3 - 3 \\times -2 \\rightarrow -8 - 3 \\times -2$' }
+                ]
+            },
+            {
+                id: 'bidmas_division_multiplication',
+                title: 'DM is for Division & Multiplication! ($\\div \\times$)',
+                steps: [
+                    { text: 'These two are a team! Do them from left to right as they appear.', emoji: '➡️' },
+                    { text: 'Example: In $72\\div8\\times-3$, we do $72\\div8$ first, which is $9$. Then $9\\times-3$.', example: '$72\\div8\\times-3 \\rightarrow 9\\times-3$' }
+                ]
+            },
+            {
+                id: 'bidmas_addition_subtraction',
+                title: 'AS is for Addition & Subtraction! ($+ - $)',
+                steps: [
+                    { text: 'These are also a team! Do them last, from left to right as they appear.', emoji: '✅' },
+                    { text: 'Example: In $8-8+2$, we do $8-8$ first, which is $0$. Then $0+2$.', example: '$8-8+2 \\rightarrow 0+2$' }
+                ]
+            },
+            {
+                id: 'bidmas_full_example',
+                title: 'Putting it all together!',
+                steps: [
+                    { text: 'Let\'s try a full problem: $5\\times6-3+(5-2)$.', example: '$5\\times6-3+(5-2)$' },
+                    { text: '1. Brackets: $(5-2) = 3$', example: '$5\\times6-3+3$' },
+                    { text: '2. Multiplication: $5\\times6 = 30$', example: '$30-3+3$' },
+                    { text: '3. Subtraction/Addition (left to right): $30-3 = 27$, then $27+3 = 30$.', example: '$30-3+3 \\rightarrow 27+3 \\rightarrow 30$' },
+                    { text: 'You\'ve got this, Explorer!', emoji: '🌟' }
+                ]
+            }
+        ];
+
+        // Quiz Questions - Now for display on the worksheet
+        const quizQuestions = [
+            { id: 'q1a', topic: 'calculations', question: '$6+3\\times-4$', answer: '-6' },
+            { id: 'q1b', topic: 'calculations', question: '$18-\\frac{12}{-3}$', answer: '22' },
+            { id: 'q1c', topic: 'calculations', question: '$8+-4-10$', answer: '-6' },
+            { id: 'q2b', topic: 'calculations', question: '$72\\div8\\times-3$', answer: '-27' },
+            { id: 'q2c', topic: 'calculations', question: '$7+(-3-4)$', answer: '0' },
+            { id: 'q3b', topic: 'calculations', question: '$-6\\times5-2\\times-6$', answer: '-18' },
+            { id: 'q4c', topic: 'indices', question: 'Evaluate: $(-2)^3-3\\times-2$', answer: '-2' },
+            { id: 'q4b', topic: 'indices', question: 'Evaluate: $-6-4+(-3)^2$', answer: '-1' },
+            { id: 'q5a', topic: 'indices', question: 'Evaluate: $\\frac{-8}{2}+(-2)^2$', answer: '0' },
+            { id: 'q9', topic: 'word_problems', question: 'A submarine dives $100m$ ($-100$), rises $60m$ ($+60$), then dives $25m$ ($-25$). What is its final position (in meters)?', answer: '-65' },
+            { id: 'q10', topic: 'word_problems', question: 'Jini has $\$2075$. She makes $2$ withdrawals of $\$150$ each, then $5$ deposits of $\$60$ each. How much money does Jini have now?', answer: '2075' },
+            { id: 'q11', topic: 'word_problems', question: 'A truck holds $156L$ diesel. After $4$ days, $64L$ is left. What was the average fuel usage per day (in L)?', answer: '23' },
+            { id: 'q16', topic: 'word_problems', question: 'A snail climbs $3cm$ ($+3$), slips back $2cm$ ($-2$), climbs $4cm$ ($+4$), and slips back $1cm$ ($-1$). How far is it from the bottom of the bucket?', answer: '4' },
+            { id: 'q13a', topic: 'true_false', question: 'Is $5\\times6-3+(5-2) < 5\\times(6-3)+5-2$ True or False?', answer: 'False' },
+            { id: 'q13b', topic: 'true_false', question: 'Is $2+(15\\div3)\\times1 = 2+15\\div(3\\times1)$ True or False?', answer: 'True' },
+        ];
+
+
+        // --- Utility Functions ---
+
+        /**
+         * Switches the displayed screen.
+         * @param {HTMLElement} screenToShow - The DOM element of the screen to display.
+         */
+        function showScreen(screenToShow) {
+            // All 'screen' divs should be hidden by default
+            const allScreens = [fullLandingPageContent, progressScreen]; // mainMenu and quizScreen are removed as standalone screens
+            allScreens.forEach(screen => {
+                screen.classList.remove('active');
+            });
+
+            // Show the target screen
+            screenToShow.classList.add('active');
+
+            // Scroll to top of the specific screen's scrollable content if it exists
+            if (screenToShow === fullLandingPageContent) {
+                appContainer.scrollTo(0, 0); // Scroll main app container to top for landing page
+            } else if (screenToShow === progressScreen) {
+                progressScreen.scrollTo(0, 0); // Progress screen is also scrollable
+            }
+            
+            // Trigger MathJax typesetting for the newly displayed screen
+            if (window.MathJax) {
+                window.MathJax.typesetPromise([screenToShow]).catch((err) => console.error("MathJax typesetting error:", err));
+            }
+        }
+
+        /**
+         * Displays a temporary feedback message.
+         * @param {string} message - The message text.
+         * @param {string} type - 'correct' or 'incorrect' for styling.
+         */
+        function displayFeedback(message, type) {
+            feedbackMessage.textContent = message;
+            feedbackMessage.className = 'feedback-message show';
+            if (type === 'correct') {
+                feedbackMessage.classList.add('bg-green-600');
+                feedbackMessage.style.borderColor = '#10B981';
+            } else if (type === 'incorrect') {
+                feedbackMessage.classList.add('bg-red-600');
+                feedbackMessage.style.borderColor = '#EF4444';
+            }
+
+            setTimeout(() => {
+                feedbackMessage.classList.remove('show', 'bg-green-600', 'bg-red-600');
+                feedbackMessage.style.borderColor = 'white'; // Reset border color
+            }, 1800);
+        }
+
+        /**
+         * Saves the current app state to localStorage.
+         */
+        function saveAppState() {
+            localStorage.setItem('doraMathQuest', JSON.stringify(appState));
+        }
+
+        /**
+         * Loads the app state from localStorage and initializes missing properties.
+         */
+        function loadAppState() {
+            const savedState = localStorage.getItem('doraMathQuest');
+            if (savedState) {
+                appState = JSON.parse(savedState);
+                appState.dailyStreak = appState.dailyStreak || 0;
+                appState.lastPlayedDate = appState.lastPlayedDate || null;
+                appState.troubledAreas = appState.troubledAreas || {};
+                appState.sessionHistory = appState.sessionHistory || [];
+                appState.badges = appState.badges || [];
+            }
+            checkDailyStreak(); 
+        }
+
+        /**
+         * Updates points and level displays across the app.
+         */
+        function updatePointsAndLevelDisplay() {
+            if(pointsDisplay) pointsDisplay.textContent = appState.points;
+            if(levelDisplay) levelDisplay.textContent = getLevelName(appState.level);
+            if(progressPoints) progressPoints.textContent = appState.points;
+            if(progressLevel) progressLevel.textContent = getLevelName(appState.level);
+            updateLevel(); 
+        }
+
+        /**
+         * Calculates and updates the user's adventure level.
+         */
+        function updateLevel() {
+            const newLevel = Math.floor(appState.points / 150) + 1; 
+            if (newLevel > appState.level) {
+                displayFeedback(`Level Up! You reached Level ${newLevel}! 🎉`, 'correct');
+                appState.level = newLevel;
+            }
+            if(levelDisplay) levelDisplay.textContent = getLevelName(appState.level);
+            if(progressLevel) progressLevel.textContent = getLevelName(appState.level);
+        }
+
+        /**
+         * Returns a descriptive name for the given level.
+         * @param {number} level - The level number.
+         * @returns {string} The level name.
+         */
+        function getLevelName(level) {
+            if (level < 3) return 'Novice Explorer';
+            if (level < 6) return 'Junior Navigator';
+            if (level < 10) return 'Equation Expert';
+            if (level < 15) return 'Formula Master';
+            return 'Integer Island Legend!';
+        }
+
+        /**
+         * Checks and updates the daily streak based on last played date.
+         */
+        function checkDailyStreak() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
+            const todayString = today.toISOString().split('T')[0];
+
+            if (appState.lastPlayedDate) {
+                const lastPlayed = new Date(appState.lastPlayedDate);
+                lastPlayed.setHours(0, 0, 0, 0);
+
+                const oneDay = 24 * 60 * 60 * 1000; 
+                const diffDays = Math.round(Math.abs((today.getTime() - lastPlayed.getTime()) / oneDay));
+
+                if (todayString === appState.lastPlayedDate) {
+                } else if (diffDays === 1) {
+                    appState.dailyStreak++;
+                    displayFeedback(`Streak! ${appState.dailyStreak} days in a row! 🔥`, 'correct');
+                } else {
+                    if (appState.dailyStreak > 0) {
+                        displayFeedback('Streak Broken! Start a new one! 😔', 'incorrect');
+                    }
+                    appState.dailyStreak = 0;
+                }
+            } else {
+                appState.dailyStreak = 0;
+            }
+            appState.lastPlayedDate = todayString;
+            if(progressStreak) progressStreak.textContent = appState.dailyStreak;
+            saveAppState();
+        }
+
+        /**
+         * Unlocks a badge if not already earned.
+         * @param {string} id - Badge ID.
+         * @param {string} name - Badge display name.
+         * @param {string} emoji - Badge emoji.
+         */
+        function unlockBadge(id, name, emoji) {
+            if (!appState.badges.some(badge => badge.id === id)) {
+                appState.badges.push({ id, name, emoji });
+                displayFeedback(`New Badge Unlocked! ${name} ${emoji}`, 'correct');
+                saveAppState();
+                updateProgressScreen();
+            }
+        }
+        
+        // --- Content Generation (Consolidated) ---
+
+        /**
+         * Renders all tutorial and quiz content into the full landing page div.
+         */
+        function loadFullWorksheetContent() {
+            // Clear existing content in tutorial and practice sections
+            tutorialSection.innerHTML = '';
+            practiceSection.innerHTML = `
+                <h3>Practice Challenges! 🧠</h3>
+                <p class="text-lg text-gray-600 mb-4 text-center">Here are some problems to test your understanding. Interactive questions can be built here later!</p>
+            `;
+
+            // Add tutorial content
+            tutorialTopics.forEach(topic => {
+                const topicSection = document.createElement('div');
+                // Removed tutorial-topic-section class for a flatter look on the worksheet
+                topicSection.innerHTML = `<h3>${topic.title}</h3>`;
+
+                topic.steps.forEach(step => {
+                    const stepP = document.createElement('p');
+                    stepP.innerHTML = step.text;
+                    topicSection.appendChild(stepP);
+
+                    if (step.example) {
+                        const exampleDiv = document.createElement('div');
+                        exampleDiv.classList.add('example-math');
+                        exampleDiv.innerHTML = `$$${step.example}$$`;
+                        topicSection.appendChild(exampleDiv);
+                    }
+                    if (step.emoji) {
+                        const emojiSpan = document.createElement('span');
+                        emojiSpan.classList.add('emoji-display');
+                        emojiSpan.innerHTML = step.emoji;
+                        topicSection.appendChild(emojiSpan);
+                    }
+                });
+                tutorialSection.appendChild(topicSection);
+            });
+
+            // Add quiz questions (non-interactive)
+            quizQuestions.forEach((question, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.classList.add('question-item');
+                questionItem.innerHTML = `
+                    <p class="question-text">${index + 1}. ${question.question}</p>
+                    <p class="answer-reveal">Answer: <span class="font-semibold">${question.answer}</span></p>
+                    <!-- Future interactive elements would go here -->
+                    <!-- Example: <input type="number" class="interactive-input" placeholder="Your Answer"> -->
+                    <!-- Example: <button class="interactive-button">Check</button> -->
+                `;
+                practiceSection.appendChild(questionItem);
+            });
+
+            // Trigger MathJax typesetting for all the newly loaded content
+            if (window.MathJax) {
+                window.MathJax.typesetPromise([tutorialSection, practiceSection]).catch((err) => console.error("MathJax typesetting error:", err));
+            }
+        }
+
+        // --- Progress Screen Logic ---
+        /**
+         * Updates and displays the progress screen.
+         */
+        function updateProgressScreen() {
+            updatePointsAndLevelDisplay(); 
+
+            // Badges
+            badgesDisplay.innerHTML = '';
+            if (appState.badges.length === 0) {
+                badgesDisplay.innerHTML = '<p class="text-gray-500 text-lg">No badges yet! Keep conquering quests!</p>';
+            } else {
+                appState.badges.forEach(badge => {
+                    const badgeElem = document.createElement('span');
+                    badgeElem.classList.add('p-3', 'bg-yellow-200', 'text-yellow-800', 'rounded-full', 'shadow-md', 'font-semibold', 'text-base', 'flex', 'items-center', 'gap-1', 'justify-center');
+                    badgeElem.innerHTML = `${badge.emoji} ${badge.name}`;
+                    badgesDisplay.appendChild(badgeElem);
+                });
+            }
+
+            // Troubled Areas
+            troubledAreasList.innerHTML = '';
+            const uniqueTroubledTopics = Object.keys(appState.troubledAreas).filter(topic => appState.troubledAreas[topic] > 0);
+            if (uniqueTroubledTopics.length === 0) {
+                troubledAreasList.innerHTML = '<p class="text-gray-500 text-lg">No specific areas to re-explore. Excellent!</p>';
+            } else {
+                uniqueTroubledTopics.forEach(topic => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('mb-2');
+                    listItem.textContent = `${topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} (Times flagged: ${appState.troubledAreas[topic]})`;
+                    troubledAreasList.appendChild(listItem);
+                });
+            }
+        }
+
+        // --- Email Export Logic ---
+        /**
+         * Generates and triggers a mailto link with the user's report.
+         */
+        function sendReport() {
+            const userName = "Valued Explorer";
+            let reportBody = `Hello,\n\n`;
+            reportBody += `Here's an update on your progress in Dora's Math Quest: Integer Island Expedition!\n\n`;
+            reportBody += `Total Data Shards: ${appState.points}\n`;
+            reportBody += `Current Adventure Level: ${getLevelName(appState.level)} (Level ${appState.level})\n`;
+            reportBody += `Daily Check-in Streak: ${appState.dailyStreak} 🔥\n\n`;
+
+            reportBody += "--- Mastery Badges Earned ---\n";
+            if (appState.badges.length > 0) {
+                appState.badges.forEach(badge => {
+                    reportBody += `${badge.emoji} ${badge.name}\n`;
+                });
+            } else {
+                reportBody += "No badges earned yet. Keep adventuring!\n";
+            }
+            reportBody += "\n";
+
+            reportBody += "--- Areas to Re-Explore (Topics Flagged) ---\n";
+            const uniqueTroubledTopics = Object.keys(appState.troubledAreas).filter(topic => appState.troubledAreas[topic] > 0);
+            if (uniqueTroubledTopics.length > 0) {
+                uniqueTroubledTopics.forEach(topic => {
+                    reportBody += `- ${topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} (Flagged ${appState.troubledAreas[topic]} times)\n`;
+                });
+            } else {
+                reportBody += "No specific areas needing re-exploration noted. Excellent work!\n";
+            }
+            reportBody += "\n";
+
+            reportBody += "--- Recent Expedition History ---\n";
+            if (appState.sessionHistory.length > 0) {
+                appState.sessionHistory.forEach(session => {
+                    reportBody += `\nSession Date: ${session.date}\n`;
+                    reportBody += `Type: ${session.type}\n`;
+                    reportBody += `Questions Attempted: ${session.questionsAttempted}\n`;
+                    reportBody += `Correct Answers: ${session.correctAnswers}\n`;
+                    reportBody += `Points Earned: ${session.pointsEarned} Data Shards\n`;
+                    if (session.durationMinutes) {
+                        reportBody += `Duration: ${session.durationMinutes} minutes\n`;
+                    }
+                    if (session.troubledTopics && session.troubledTopics.length > 0) {
+                        reportBody += `Topics Flagged in Session: ${session.troubledTopics.map(t => t.replace(/_/g, ' ')).join(', ')}\n`;
+                    }
+                });
+            } else {
+                reportBody += "No recent quest sessions recorded.\n";
+            }
+            reportBody += "\n\nKeep solving mysteries and exploring with Dora!\n";
+
+            const subject = encodeURIComponent("Dora's Math Quest: Expedition Report");
+            const body = encodeURIComponent(reportBody);
+            const mailtoLink = `mailto:your.email@example.com?subject=${subject}&body=${body}`;
+
+            window.location.href = mailtoLink;
+        }
+
+
+        // --- Event Listeners ---
+        goToProgressButton.addEventListener('click', () => {
+            showScreen(progressScreen);
+        });
+
+        backToLandingButton.addEventListener('click', () => { 
+            showScreen(fullLandingPageContent); 
+        });
+
+        sendReportButton.addEventListener('click', sendReport);
+
+        // --- Initial Load ---
+        window.onload = () => {
+            loadAppState();
+            updatePointsAndLevelDisplay();
+            loadFullWorksheetContent(); // Load all content onto the landing page
+            // The fullLandingPageContent is already 'active' by default in HTML
+            // No need to call showScreen initially for it, it's the primary view.
+        };
+
+    </script>
+</body>
+</html>
+
