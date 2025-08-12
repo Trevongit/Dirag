@@ -18,7 +18,7 @@
           displayMath: [['$$', '$$'], ['\\[', '\\]']] 
         },
         svg: {
-          fontCache: 'global'
+          fontCache: 'global' // Enable font caching for better performance
         }
       };
     </script>
@@ -253,6 +253,24 @@
         .screen.active {
             display: flex; 
         }
+
+        /* New styles for top navigation buttons */
+        .top-nav-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 0.75rem; /* Space between buttons */
+            margin-bottom: 1.5rem;
+            width: 100%;
+            padding: 0.5rem;
+            box-sizing: border-box;
+        }
+
+        .top-nav-buttons .nav-btn {
+            @apply bg-blue-500 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-200 ease-in-out hover:bg-blue-600;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            flex-shrink: 0; /* Prevent buttons from shrinking too much */
+        }
     </style>
 </head>
 <body>
@@ -264,6 +282,12 @@
         <div id="fullLandingPageContent" class="screen active"> 
             <h1 class="section-title">Dora's Math Quest: BIDMAS Expedition! 🚀</h1>
             <p class="text-xl text-gray-700 mb-8 text-center">Hey Adventurer! I'm Dora, and Integer Island needs our help! Scroll down to master BIDMAS concepts and practice problems.</p>
+
+            <!-- New Top Navigation Buttons -->
+            <div class="top-nav-buttons">
+                <button id="goToTutorialSectionBtn" class="nav-btn">Go to BIDMAS Basics 📖</button>
+                <button id="goToPracticeSectionBtn" class="nav-btn">Go to Practice 💪</button>
+            </div>
 
             <div id="tutorialSection" class="content-section">
                 <h3>BIDMAS Academy! 📖</h3>
@@ -320,6 +344,8 @@
         const practiceSection = document.getElementById('practiceSection'); 
 
         const goToProgressButton = document.getElementById('goToProgressButton'); 
+        const goToTutorialSectionBtn = document.getElementById('goToTutorialSectionBtn'); // New button
+        const goToPracticeSectionBtn = document.getElementById('goToPracticeSectionBtn'); // New button
 
         const progressScreen = document.getElementById('progressScreen');
 
@@ -351,7 +377,7 @@
                 title: 'B is for Brackets! ($()$)',
                 steps: [
                     { text: 'Always solve anything INSIDE brackets first. They\'re super important!', emoji: '🚧' },
-                    { text: 'Example: In $8-2\\times(4+2)$, we solve $(4+2)$ first, which is $6$.', example: '$8-2\\times(4+2) \\rightarrow 8-2\\times6$' }
+                    { text: 'Example: In $8-2\\times(4+2)$, we solve $(4+2)$ first, which is $6$.', example: '8-2\\times(4+2) \\rightarrow 8-2\\times6' }
                 ]
             },
             {
@@ -359,7 +385,7 @@
                 title: 'I is for Indices! ($x^2$ or $\\sqrt{}$)',
                 steps: [
                     { text: 'Indices are powers (like $x^2$) or square roots ($\\sqrt{}$). Do these next!', emoji: '📈' },
-                    { text: 'Example: In $(-2)^3 - 3 \\times -2$, we solve $(-2)^3$ first, which is $-8$.', example: '$(-2)^3 - 3 \\times -2 \\rightarrow -8 - 3 \\times -2$' }
+                    { text: 'Example: In $(-2)^3 - 3 \\times (-2)$, we solve $(-2)^3$ first, which is $-8$.', example: '(-2)^3 - 3 \\times (-2) \\rightarrow -8 - 3 \\times (-2)' }
                 ]
             },
             {
@@ -367,7 +393,7 @@
                 title: 'DM is for Division & Multiplication! ($\\div \\times$)',
                 steps: [
                     { text: 'These two are a team! Do them from left to right as they appear.', emoji: '➡️' },
-                    { text: 'Example: In $72\\div8\\times-3$, we do $72\\div8$ first, which is $9$. Then $9\\times-3$.', example: '$72\\div8\\times-3 \\rightarrow 9\\times-3$' }
+                    { text: 'Example: In $72\\div8\\times(-3)$, we do $72\\div8$ first, which is $9$. Then $9\\times(-3)$.', example: '72\\div8\\times(-3) \\rightarrow 9\\times(-3)' }
                 ]
             },
             {
@@ -375,17 +401,17 @@
                 title: 'AS is for Addition & Subtraction! ($+ - $)',
                 steps: [
                     { text: 'These are also a team! Do them last, from left to right as they appear.', emoji: '✅' },
-                    { text: 'Example: In $8-8+2$, we do $8-8$ first, which is $0$. Then $0+2$.', example: '$8-8+2 \\rightarrow 0+2$' }
+                    { text: 'Example: In $8-8+2$, we do $8-8$ first, which is $0$. Then $0+2$.', example: '8-8+2 \\rightarrow 0+2' }
                 ]
             },
             {
                 id: 'bidmas_full_example',
                 title: 'Putting it all together!',
                 steps: [
-                    { text: 'Let\'s try a full problem: $5\\times6-3+(5-2)$.', example: '$5\\times6-3+(5-2)$' },
-                    { text: '1. Brackets: $(5-2) = 3$', example: '$5\\times6-3+3$' },
-                    { text: '2. Multiplication: $5\\times6 = 30$', example: '$30-3+3$' },
-                    { text: '3. Subtraction/Addition (left to right): $30-3 = 27$, then $27+3 = 30$.', example: '$30-3+3 \\rightarrow 27+3 \\rightarrow 30$' },
+                    { text: 'Let\'s try a full problem: $5\\times6-3+(5-2)$.', example: '5\\times6-3+(5-2)' },
+                    { text: '1. Brackets: $(5-2) = 3$', example: '5\\times6-3+3' },
+                    { text: '2. Multiplication: $5\\times6 = 30$', example: '30-3+3' },
+                    { text: '3. Subtraction/Addition (left to right): $30-3 = 27$, then $27+3 = 30$.', example: '30-3+3 \\rightarrow 27+3 \\rightarrow 30' },
                     { text: 'You\'ve got this, Explorer!', emoji: '🌟' }
                 ]
             }
@@ -393,13 +419,13 @@
 
         // Quiz Questions - Now fully interactive
         const quizQuestions = [
-            { id: 'q1a', topic: 'calculations', question: '$6+3\\times-4$', answer: '-6', choices: ['-6', '36', '18', '12'] },
+            { id: 'q1a', topic: 'calculations', question: '$6+3\\times(-4)$', answer: '-6', choices: ['-6', '36', '18', '12'] },
             { id: 'q1b', topic: 'calculations', question: '$18-\\frac{12}{-3}$', answer: '22', choices: ['14', '22', '12', '10'] },
-            { id: 'q1c', topic: 'calculations', question: '$8+-4-10$', answer: '-6', choices: ['4', '-6', '-8', '6'] },
-            { id: 'q2b', topic: 'calculations', question: '$72\\div8\\times-3$', answer: '-27', choices: ['-27', '27', '-3', '3'] },
+            { id: 'q1c', topic: 'calculations', question: '$8+(-4)-10$', answer: '-6', choices: ['4', '-6', '-8', '6'] },
+            { id: 'q2b', topic: 'calculations', question: '$72\\div8\\times(-3)$', answer: '-27', choices: ['-27', '27', '-3', '3'] },
             { id: 'q2c', topic: 'calculations', question: '$7+(-3-4)$', answer: '0', choices: ['0', '14', '-14', '7'] },
-            { id: 'q3b', topic: 'calculations', question: '$-6\\times5-2\\times-6$', answer: '-18', choices: ['-42', '-18', '18', '42'] },
-            { id: 'q4c', topic: 'indices', question: 'Evaluate: $(-2)^3-3\\times-2$', answer: '-2', choices: ['-2', '14', '-10', '2'] },
+            { id: 'q3b', topic: 'calculations', question: '$-6\\times5-2\\times(-6)$', answer: '-18', choices: ['-42', '-18', '18', '42'] },
+            { id: 'q4c', topic: 'indices', question: 'Evaluate: $(-2)^3-3\\times(-2)$', answer: '-2', choices: ['-2', '14', '-10', '2'] },
             { id: 'q4b', topic: 'indices', question: 'Evaluate: $-6-4+(-3)^2$', answer: '-1', choices: ['-1', '11', '-19', '2'] },
             { id: 'q5a', topic: 'indices', question: 'Evaluate: $\\frac{-8}{2}+(-2)^2$', answer: '0', choices: ['0', '-8', '4', '-2'] },
             { id: 'q9', topic: 'word_problems', question: 'A submarine dives $100m$ ($-100$), rises $60m$ ($+60$), then dives $25m$ ($-25$). What is its final position (in meters)?', answer: '-65', choices: ['-65', '-15', '185', '35'] },
@@ -414,18 +440,21 @@
         // --- Utility Functions ---
 
         /**
-         * Safely attempts to typeset elements with MathJax, waiting for it to be ready.
+         * Safely typesets elements with MathJax, waiting for it to be ready.
          * @param {HTMLElement[]} elements - Array of DOM elements to typeset.
          */
         function typesetIfMathJaxReady(elements) {
-            if (window.MathJax && window.MathJax.startup && window.MathJax.startup.ready) {
-                window.MathJax.startup.ready.then(() => {
-                    // console.log("MathJax is ready, typesetting elements:", elements);
-                    window.MathJax.typesetPromise(elements).catch((err) => console.error("MathJax typesetting error:", err));
-                }).catch(err => console.error("MathJax startup ready promise error:", err));
+            if (window.MathJax && window.MathJax.startup && window.MathJax.startup.promise) {
+                window.MathJax.startup.promise.then(() => {
+                    window.MathJax.typesetPromise(elements).catch(err => {
+                        console.error("MathJax typesetting error for elements:", elements, err);
+                    });
+                }).catch(err => {
+                    console.error("MathJax startup promise error:", err);
+                });
             } else {
-                // console.warn("MathJax or MathJax.startup.ready not available for typesetting. Retrying in 200ms...");
-                setTimeout(() => typesetIfMathJaxReady(elements), 200); // Retry after a short delay
+                console.warn("MathJax not available. Retrying in 100ms...");
+                setTimeout(() => typesetIfMathJaxReady(elements), 100); // Reduced retry delay
             }
         }
 
@@ -445,9 +474,9 @@
 
             // Scroll to top of the specific screen's scrollable content if it exists
             if (screenToShow === fullLandingPageContent) {
-                appContainer.scrollTo(0, 0); 
+                appContainer.scrollTo({ top: 0, behavior: 'smooth' }); // Smooth scroll to top
             } else if (screenToShow === progressScreen) {
-                progressScreen.scrollTo(0, 0); 
+                progressScreen.scrollTo({ top: 0, behavior: 'smooth' }); // Smooth scroll to top
             }
             
             // Trigger MathJax typesetting for the newly displayed screen
@@ -603,7 +632,7 @@
             const sessionRecord = appState.sessionHistory[appState.sessionHistory.length - 1] || { questionsAttempted: 0, correctAnswers: 0, pointsEarned: 0, troubledTopics: [] };
             sessionRecord.questionsAttempted = (sessionRecord.questionsAttempted || 0) + 1;
 
-            if (userAnswer === "Don't Understand") {
+            if (userAnswer === "Don't Understand 💡") { // Updated text to match button
                 displayFeedback("It's okay! Review the topics above.", "incorrect");
                 feedbackArea.innerHTML = `<p class="text-red-600 mt-2 font-semibold">Review related tutorials above. The answer is: ${question.answer}</p>`;
                 appState.troubledAreas[question.topic] = (appState.troubledAreas[question.topic] || 0) + 1;
@@ -648,6 +677,7 @@
                     selectedButton.classList.add('incorrect-animation');
                 }
             }
+            typesetIfMathJaxReady([feedbackArea]);
             saveAppState(); // Save state after each answer
             updatePointsAndLevelDisplay(); // Update display immediately
         }
@@ -665,23 +695,24 @@
             // Add tutorial content
             tutorialTopics.forEach(topic => {
                 const topicSection = document.createElement('div');
+                topicSection.classList.add('content-section'); // Add content-section class
                 topicSection.innerHTML = `<h3>${topic.title}</h3>`;
 
                 topic.steps.forEach(step => {
                     const stepP = document.createElement('p');
-                    stepP.innerHTML = step.text;
+                    stepP.innerHTML = step.text; 
                     topicSection.appendChild(stepP);
 
                     if (step.example) {
                         const exampleDiv = document.createElement('div');
                         exampleDiv.classList.add('example-math');
-                        exampleDiv.innerHTML = `$$${step.example}$$`;
+                        exampleDiv.innerHTML = `$$${step.example}$$`; // Ensure MathJax block delimiters
                         topicSection.appendChild(exampleDiv);
                     }
                     if (step.emoji) {
                         const emojiSpan = document.createElement('span');
                         emojiSpan.classList.add('emoji-display');
-                        emojiSpan.innerHTML = step.emoji;
+                        emojiSpan.innerHTML = step.emoji; // Render emoji directly
                         topicSection.appendChild(emojiSpan);
                     }
                 });
@@ -696,7 +727,7 @@
 
                 const questionTextElem = document.createElement('p');
                 questionTextElem.classList.add('question-text');
-                questionTextElem.innerHTML = `${index + 1}. ${question.question}`;
+                questionTextElem.innerHTML = `${index + 1}. ${question.question}`; // Use innerHTML for MathJax
                 questionItem.appendChild(questionTextElem);
 
                 const choicesContainer = document.createElement('div');
@@ -719,9 +750,9 @@
 
                 // Add "Don't Understand" button
                 const dontUnderstandBtn = document.createElement('button');
-                dontUnderstandBtn.classList.add('skip-button', 'choice-btn'); // Using choice-btn for consistent styling
-                dontUnderstandBtn.innerHTML = "Don't Understand 💡";
-                dontUnderstandBtn.addEventListener('click', () => handleAnswer("Don't Understand", question, questionItem));
+                dontUnderstandBtn.classList.add('skip-button', 'choice-btn'); 
+                dontUnderstandBtn.innerHTML = "Don't Understand 💡"; // Use innerHTML for emoji
+                dontUnderstandBtn.addEventListener('click', () => handleAnswer("Don't Understand 💡", question, questionItem)); // Pass exact text
                 choicesContainer.appendChild(dontUnderstandBtn);
 
                 questionItem.appendChild(choicesContainer);
@@ -733,8 +764,8 @@
                 practiceSection.appendChild(questionItem);
             });
 
-            // Trigger MathJax typesetting for all the newly loaded content
-            typesetIfMathJaxReady([tutorialSection, practiceSection]);
+            // Typeset the entire app container after all content is loaded
+            typesetIfMathJaxReady([appContainer]);
 
             // Start a new session history entry when the worksheet loads
             appState.sessionHistory.push({
@@ -801,7 +832,7 @@
 
             reportBody += "--- Mastery Badges Earned ---\n";
             if (appState.badges.length > 0) {
-                appState.badges.forEach(badge => { // Corrected appBody.badges to appState.badges
+                appState.badges.forEach(badge => { 
                     reportBody += `${badge.emoji} ${badge.name}\n`;
                 });
             } else {
@@ -853,6 +884,16 @@
             showScreen(progressScreen);
         });
 
+        // Event listeners for the scroll-to buttons
+        goToTutorialSectionBtn.addEventListener('click', () => {
+            tutorialSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        goToPracticeSectionBtn.addEventListener('click', () => {
+            practiceSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+
         backToLandingButton.addEventListener('click', () => { 
             showScreen(fullLandingPageContent); 
         });
@@ -863,12 +904,23 @@
         window.onload = () => {
             loadAppState();
             updatePointsAndLevelDisplay();
-            // Call typesetIfMathJaxReady for the initial load, which will then call loadFullWorksheetContent internally
-            typesetIfMathJaxReady([fullLandingPageContent]); 
+            // Call loadFullWorksheetContent directly, as typesetIfMathJaxReady is now called within it
+            loadFullWorksheetContent(); 
+            // The fullLandingPageContent is already 'active' by default in HTML
+            // No need to call showScreen initially for it, it's the primary view.
+
+            // Fallback for MathJax loading failure
+            setTimeout(() => {
+                if (!window.MathJax || !window.MathJax.startup || !window.MathJax.startup.promise) {
+                    console.error("MathJax failed to load after timeout.");
+                    const warning = document.createElement('p');
+                    warning.classList.add('text-red-600', 'text-center', 'mt-4');
+                    warning.textContent = "Unable to load math renderer. Please refresh the page or check your internet connection.";
+                    appContainer.prepend(warning);
+                }
+            }, 5000); // 5-second timeout
         };
 
     </script>
 </body>
 </html>
-
-
