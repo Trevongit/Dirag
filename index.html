@@ -6,67 +6,39 @@
     <title>Dora's Math Quest: Integer Island Expedition 🚀</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-
-    <!-- MathJax for LaTeX rendering -->
-    <script type="text/javascript" id="MathJax-script" async
-      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-    </script>
     <script>
-      MathJax = {
-        tex: {
-          inlineMath: [['\\(', '\\)']], // Only use \( and \) for inline math
-          displayMath: [['\\[', '\\]']] // Only use \[ and \] for display math
-        },
-        svg: {
-          fontCache: 'global' // Enable font caching for better performance
-        }
-      };
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+            svg: { fontCache: 'global' },
+            startup: { pageReady: () => window.MathJaxReady = true }
+        };
     </script>
-    
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
-        /* Custom CSS for Dora's Math Quest */
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #10B981;
+            --danger-color: #EF4444;
+            --background-gradient: linear-gradient(to bottom right, #87CEEB, #6A5ACD);
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(to bottom right, #87CEEB, #6A5ACD);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0.5rem; /* Small padding for very narrow screens */
-            box-sizing: border-box;
-            color: #333;
+            background: var(--background-gradient);
+            @apply flex min-h-screen items-center justify-center p-2;
         }
 
         .app-container {
-            background-color: #fff;
-            border-radius: 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            padding: 1rem; /* Adjusted padding for better mobile content display */
-            max-width: 98%; /* On mobile, use almost full width */
-            width: 800px; /* Base width for larger screens */
-            text-align: center;
-            position: relative;
-            overflow-y: auto; 
+            @apply bg-white rounded-3xl shadow-2xl p-4 max-w-[98%] w-full md:max-w-4xl md:p-8 border-4 border-[var(--primary-color)];
             min-height: 650px;
-            max-height: 95vh; 
+            max-height: 95vh;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; 
-            border: 5px solid #4F46E5; 
-        }
-
-        @media (min-width: 768px) {
-            .app-container {
-                padding: 2.5rem; /* Larger padding for desktop */
-                max-width: 90%; /* Allow wider expansion on desktop */
-                width: 960px; /* Max width for desktop for a good reading experience */
-            }
         }
 
         .dora-avatar {
-            font-size: 6rem;
-            margin-bottom: 1.5rem;
+            @apply text-6xl mb-6;
             animation: float 3s infinite ease-in-out;
         }
 
@@ -76,258 +48,184 @@
         }
 
         .btn {
-            @apply bg-indigo-600 text-white font-extrabold py-3 px-4 rounded-full shadow-xl transition duration-300 ease-in-out transform hover:scale-105 active:scale-95;
-            min-width: 120px; 
-            flex-grow: 1; 
-            max-width: 250px; 
-            margin: 0.4rem; 
-            border: 4px solid #3730A3; 
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            font-size: 0.85rem; 
-            white-space: normal; 
-            word-break: break-word; 
+            @apply bg-indigo-600 text-white font-extrabold py-3 px-4 rounded-full shadow-xl transition-transform duration-300 hover:scale-105 active:scale-95 border-4 border-[var(--primary-color)];
+            min-width: 120px;
+            font-size: 0.85rem;
+            @apply uppercase md:min-w-[200px] md:text-xl md:py-4 md:px-6;
         }
 
-        @media (min-width: 768px) {
-            .btn {
-                min-width: 200px; 
-                margin: 0.75rem;
-                font-size: 1.25rem; 
-                padding: 0.75rem 1.5rem; 
-            }
-        }
-
-        .btn-secondary {
-            @apply bg-green-600 border-green-800;
-        }
-        .btn-danger {
-            @apply bg-red-600 border-red-800;
-        }
+        .btn-secondary { @apply bg-green-600 border-[var(--secondary-color)]; }
+        .btn-danger { @apply bg-red-600 border-[var(--danger-color)]; }
 
         .section-title {
-            font-size: clamp(2rem, 5vw, 4rem); /* Responsive font size */
-            @apply font-extrabold text-indigo-700 mb-4 md:mb-6; 
+            @apply font-extrabold text-indigo-700 mb-4 md:mb-6;
+            font-size: clamp(2rem, 5vw, 4rem);
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* Styles for consolidated content sections */
         .content-section {
-            background-color: #f8f8ff; 
-            border-radius: 1rem;
-            padding: 1rem; /* Adjusted padding for content sections */
-            margin-bottom: 1.5rem; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            border: 1px solid #e0e0e0;
+            @apply bg-gray-50 rounded-xl p-4 mb-6 shadow-sm border border-gray-200;
             text-align: left;
         }
 
         .content-section h3 {
-            font-size: clamp(1.5rem, 4vw, 2.5rem); /* Responsive font size */
-            @apply font-bold text-indigo-700 mb-3; 
-            text-align: center; 
-        }
-        .content-section p {
-            font-size: clamp(0.95rem, 2.5vw, 1.1rem); /* Responsive font size */
-            line-height: 1.6;
-            margin-bottom: 0.8rem;
-            color: #444;
-            text-align: left; 
-            word-break: break-word; /* Ensure long words break */
-            overflow-wrap: break-word; /* Ensure long words break */
-        }
-        .content-section .example-math {
-            font-size: clamp(1.2rem, 3.5vw, 1.8rem); /* Responsive font size for math */
-            padding: 0.5rem 0.75rem; /* Adjusted padding */
-            margin-top: 1rem;
-            margin-bottom: 1rem;
-            background-color: #F3F4F6;
-            border-radius: 0.75rem;
-            border: 2px solid #D1D5DB;
-            text-align: center; 
-            overflow-x: auto; /* Allow horizontal scroll for very long equations */
-            -webkit-overflow-scrolling: touch;
-        }
-        .content-section .emoji-display {
-            font-size: clamp(2rem, 6vw, 3rem); /* Responsive font size */
-            display: block;
-            text-align: center;
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
+            @apply font-bold text-indigo-700 mb-3 text-center;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
         }
 
-        /* Interactive Question Specific Styles */
+        .content-section p {
+            @apply text-gray-700 mb-4;
+            font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+            line-height: 1.6;
+        }
+
+        .example-math {
+            @apply bg-gray-100 rounded-lg p-3 my-4 border-2 border-gray-300 text-center overflow-x-auto;
+            font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+        }
+
+        .emoji-display {
+            @apply block text-center my-2;
+            font-size: clamp(2rem, 6vw, 3rem);
+        }
+
         .question-item {
-            background-color: #f8f8ff; /* Same as content section for consistency */
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            border: 1px solid #e0e0e0;
-            text-align: center; /* Center question for clarity */
+            @apply bg-gray-50 rounded-xl p-4 mb-6 shadow-sm border border-gray-200 text-center;
         }
-        .question-item .question-text {
-            font-size: clamp(1.2rem, 3.5vw, 1.6rem); /* Responsive font size */
-            font-weight: bold;
-            margin-bottom: 1rem;
-            color: #222;
+
+        .question-text {
+            @apply font-bold text-gray-800 mb-4;
+            font-size: clamp(1.2rem, 3.5vw, 1.6rem);
         }
+
         .question-choices {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* More flexible grid for choices */
-            gap: 0.75rem; /* Smaller gap for mobile */
-            margin-top: 1rem;
-            width: 100%;
+            @apply flex flex-wrap justify-center gap-3 mt-4;
         }
+
         .choice-btn {
-            @apply bg-purple-200 text-purple-800 font-bold py-3 px-3 rounded-lg shadow-md transition duration-200 ease-in-out hover:bg-purple-300;
-            border: 2px solid #8B5CF6;
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem); /* Responsive font size for choices */
-            min-height: 60px; /* Ensure tappable area */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            word-break: break-word;
-            text-align: center;
-            line-height: 1.3;
+            @apply bg-purple-200 text-purple-800 font-bold py-3 px-3 rounded-lg shadow-md transition duration-200 hover:bg-purple-300 border-2 border-purple-600;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            flex: 1 1 calc(50% - 0.75rem);
+            min-height: 60px;
+            @apply flex items-center justify-center text-center;
         }
+
+        @media (max-width: 640px) {
+            .choice-btn { @apply flex-1 w-full; }
+        }
+
         .choice-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            background-color: #e0e0e0;
-            color: #666;
+            @apply opacity-60 cursor-not-allowed bg-gray-300 text-gray-600;
         }
+
         .correct-animation {
-            background-color: #D1FAE5; /* Light green */
+            @apply bg-green-100 border-green-500;
             animation: pulse-correct 0.6s forwards;
-            border-color: #10B981;
         }
+
         .incorrect-animation {
-            background-color: #FEE2E2; /* Light red */
+            @apply bg-red-100 border-red-500;
             animation: shake 0.6s forwards;
-            border-color: #EF4444;
         }
+
+        @keyframes pulse-correct {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
         .skip-button {
-            @apply bg-yellow-500 text-yellow-900 font-bold py-2 px-4 rounded-full shadow-md transition duration-200 ease-in-out hover:bg-yellow-600;
-            border: 2px solid #D97706;
-            margin-top: 1rem;
+            @apply bg-yellow-500 text-yellow-900 font-bold py-2 px-4 rounded-full shadow-md hover:bg-yellow-600 border-2 border-yellow-700 mt-4;
             font-size: clamp(0.8rem, 2.2vw, 1rem);
-            min-width: 100px;
         }
 
         .feedback-message {
-            position: fixed; 
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 1.5rem 2rem; 
-            border-radius: 2rem;
-            font-size: clamp(1.5rem, 4vw, 2.5rem); 
-            font-weight: bold;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
-            z-index: 100;
-            border: 5px solid white;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            @apply fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/90 text-white p-6 rounded-3xl font-bold opacity-0 invisible transition-opacity duration-400 z-[100] border-4 border-white shadow-2xl;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
         }
 
         .feedback-message.show {
-            opacity: 1;
-            visibility: visible;
+            @apply opacity-100 visible;
         }
 
-        /* Screen management styles */
         .screen {
-            display: none; 
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start; /* Adjust to flex-start for scrollable content */
-            height: 100%; 
-            width: 100%;
-            overflow-y: auto; /* Make screens scrollable if content exceeds height */
-            -webkit-overflow-scrolling: touch;
+            @apply hidden flex-col items-center w-full h-full overflow-y-auto;
         }
+
         .screen.active {
-            display: flex; 
+            @apply flex;
         }
 
-        /* New styles for top navigation buttons */
         .top-nav-buttons {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
-            gap: 0.75rem; /* Space between buttons */
-            margin-bottom: 1.5rem;
-            width: 100%;
-            padding: 0.5rem;
-            box-sizing: border-box;
+            @apply flex flex-wrap justify-center gap-3 mb-6 w-full p-2;
         }
 
-        .top-nav-buttons .nav-btn {
-            @apply bg-blue-500 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-200 ease-in-out hover:bg-blue-600;
+        .nav-btn {
+            @apply bg-blue-500 text-white font-semibold py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition duration-200;
             font-size: clamp(0.8rem, 2vw, 1rem);
-            flex-shrink: 0; /* Prevent buttons from shrinking too much */
         }
 
-        /* Loading indicator for Study Mode */
         .loading-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            font-size: 1.2rem;
-            color: #555;
+            @apply flex flex-col items-center justify-center p-6 text-gray-600 text-lg;
         }
+
         .loading-spinner {
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #3498db; /* Blue */
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 2s linear infinite;
-            margin-bottom: 1rem;
+            @apply border-4 border-gray-200 border-t-blue-500 rounded-full w-8 h-8 animate-spin mb-4;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .help-form {
+            @apply w-full max-w-md mt-4;
+        }
+
+        .help-form select, .help-form textarea {
+            @apply w-full p-3 rounded-lg border-2 border-gray-300 mb-4 focus:outline-none focus:border-[var(--primary-color)];
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+        }
+
+        .help-form textarea {
+            @apply min-h-[100px];
+        }
+
+        .quick-challenge {
+            @apply bg-gray-50 rounded-xl p-4 mb-6 shadow-sm border border-gray-200 text-center;
         }
     </style>
 </head>
 <body>
-    <div class="app-container" id="appContainer"> 
-        <!-- Feedback Message Overlay -->
-        <div id="feedbackMessage" class="feedback-message"></div>
+    <div class="app-container" id="appContainer" role="main">
+        <div id="feedbackMessage" class="feedback-message" role="alert" aria-live="assertive"></div>
 
-        <!-- FULL LANDING PAGE: All Tutorial and Questions Content -->
-        <div id="fullLandingPageContent" class="screen active"> 
+        <div id="fullLandingPageContent" class="screen active">
+            <span class="dora-avatar" aria-hidden="true">🦋</span>
             <h1 class="section-title">Dora's Math Quest: BIDMAS Expedition! 🚀</h1>
             <p class="text-xl text-gray-700 mb-8 text-center">Hey Adventurer! I'm Dora, and Integer Island needs our help! Scroll down to master BIDMAS concepts and practice problems.</p>
 
-            <!-- New Top Navigation Buttons -->
             <div class="top-nav-buttons">
-                <button id="goToTutorialSectionBtn" class="nav-btn">Go to BIDMAS Basics 📖</button>
-                <button id="goToPracticeSectionBtn" class="nav-btn">Go to Practice 💪</button>
+                <button class="nav-btn" data-nav="tutorial">Go to BIDMAS Basics 📖</button>
+                <button class="nav-btn" data-nav="practice">Go to Practice 💪</button>
+                <button class="nav-btn" data-nav="help">Visit Dora's Help Hut 🤝</button>
             </div>
 
-            <div id="tutorialSection" class="content-section">
-                <h3>BIDMAS Academy! 📖</h3>
-                <!-- Tutorial content will be dynamically inserted here -->
+            <div class="quick-challenge" id="quickChallenge">
+                <h3 class="font-bold text-indigo-700 mb-3 text-center text-xl">Quick Challenge! ⚡</h3>
+                <p class="text-lg text-gray-700 mb-4">Solve this BIDMAS problem for 10 bonus points!</p>
+                <p id="quickChallengeQuestion" class="question-text mb-4"></p>
+                <input id="quickChallengeInput" type="text" class="w-full max-w-xs p-2 rounded-lg border-2 border-gray-300 mb-4 focus:outline-none focus:border-[var(--primary-color)]" placeholder="Enter your answer">
+                <button id="submitQuickChallenge" class="btn btn-secondary">Submit Answer</button>
+                <p id="quickChallengeFeedback" class="mt-4 text-lg"></p>
             </div>
 
-            <div id="practiceSection" class="content-section">
-                <h3>Practice Challenges! 🧠</h3>
-                <p class="text-lg text-gray-600 mb-4 text-center">Answer the questions below to test your knowledge!</p>
-                <!-- Interactive quiz questions will be dynamically inserted here -->
-            </div>
-
+            <div id="tutorialSection" class="content-section"></div>
+            <div id="practiceSection" class="content-section"></div>
             <button id="goToProgressButton" class="btn my-6">View Progress & Report 📈</button>
         </div>
 
-        <!-- Progress Screen -->
         <div id="progressScreen" class="screen">
             <h2 class="section-title">Your Expedition Log! ✨</h2>
             <p class="text-xl text-gray-700 mb-4">Total Data Shards: <span id="progressPoints" class="font-bold text-blue-600">0</span></p>
@@ -335,705 +233,618 @@
             <p class="text-xl text-gray-700 mb-4">Daily Check-in Streak: <span id="progressStreak" class="font-bold text-red-600">0</span> 🔥</p>
 
             <h3 class="text-3xl font-bold text-purple-600 mt-8 mb-4">Mastery Badges: 🏆</h3>
-            <div id="badgesDisplay" class="flex flex-wrap justify-center gap-4 mb-8">
-                <!-- Badges will be displayed here -->
-            </div>
+            <div id="badgesDisplay" class="flex flex-wrap justify-center gap-4 mb-8"></div>
 
             <h3 class="text-3xl font-bold text-red-600 mt-8 mb-4">Areas to Re-Explore: 🚧</h3>
-            <ul id="troubledAreasList" class="list-disc list-inside text-xl text-gray-700 text-left w-full max-w-lg mx-auto">
-                <!-- Troubled areas will be listed here -->
-            </ul>
+            <ul id="troubledAreasList" class="list-disc list-inside text-xl text-gray-700 text-left w-full max-w-lg mx-auto"></ul>
 
-            <button id="startStudySessionButton" class="btn btn-secondary mt-8 hidden">Start Study Session on Troubled Areas 📚</button>
+            <button id="startStudySessionButton" class="btn btn-secondary mt-8 hidden">Start Study Session 📚</button>
             <button id="backToLandingButton" class="btn btn-danger mt-4">Back to Lessons</button>
             <button id="sendReportButton" class="btn btn-secondary mt-4">Share Report 📧</button>
         </div>
 
-        <!-- Study Mode Screen -->
         <div id="studyModeScreen" class="screen">
             <h2 class="section-title">Dora's Study Corner! 📚</h2>
-            <div id="studyModeContent" class="content-section flex flex-col items-center justify-center min-h-[200px] text-gray-700">
-                <!-- AI-generated content or loading indicator will go here -->
-                <div class="loading-indicator">
-                    <div class="loading-spinner"></div>
-                    <p>Dora is thinking up a brilliant lesson for you...</p>
-                </div>
-            </div>
+            <div id="studyModeContent" class="content-section flex flex-col items-center justify-center min-h-[200px] text-gray-700"></div>
             <button id="backToProgressFromStudyButton" class="btn btn-danger mt-8">Back to Progress</button>
+        </div>
+
+        <div id="helpScreen" class="screen">
+            <h2 class="section-title">Dora's Help Hut! 🤝</h2>
+            <p class="text-xl text-gray-700 mb-4 text-center">Need a hint or deeper insight? I'm here to help! Note: Requesting a hint adds an extra practice question!</p>
+            <form class="help-form" id="helpForm">
+                <label for="helpTopic" class="text-lg font-semibold text-gray-700">Select a Topic for a Hint:</label>
+                <select id="helpTopic" class="mt-2">
+                    <option value="">Choose a topic</option>
+                    <option value="bidmas_brackets">Brackets</option>
+                    <option value="bidmas_indices">Indices</option>
+                    <option value="bidmas_division_multiplication">Division & Multiplication</option>
+                    <option value="bidmas_addition_subtraction">Addition & Subtraction</option>
+                </select>
+                <button type="button" id="getHintButton" class="btn btn-secondary mt-4">Get Hint</button>
+                <label for="helpQuestion" class="text-lg font-semibold text-gray-700 mt-6">Ask a Question:</label>
+                <textarea id="helpQuestion" placeholder="Type your math question here..."></textarea>
+                <button type="button" id="askAIButton" class="btn btn-secondary mt-4">Ask Dora's AI Helper</button>
+            </form>
+            <div id="helpContent" class="content-section mt-6 w-full max-w-md"></div>
+            <button id="backToLandingFromHelpButton" class="btn btn-danger mt-8">Back to Lessons</button>
         </div>
     </div>
 
     <script>
-        // --- Global State ---
-        let appState = {
-            points: 0,
-            level: 1,
-            dailyStreak: 0,
-            lastPlayedDate: null,
-            badges: [], 
-            troubledAreas: {}, // Stores { topic: count_of_incorrect_answers }
-            sessionHistory: [], 
+        // Utility to sanitize HTML to prevent XSS
+        const sanitizeHTML = (str) => {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         };
 
-        // --- DOM Element References ---
-        const appContainer = document.getElementById('appContainer'); 
-        const fullLandingPageContent = document.getElementById('fullLandingPageContent'); 
-        const tutorialSection = document.getElementById('tutorialSection'); 
-        const practiceSection = document.getElementById('practiceSection'); 
+        // State Management Module
+        const StateManager = (() => {
+            let state = {
+                points: 0,
+                level: 1,
+                dailyStreak: 0,
+                lastPlayedDate: null,
+                badges: [],
+                troubledAreas: {},
+                sessionHistory: [],
+                quickChallenges: { attempts: 0, correct: 0, points: 0 },
+                helpRequests: [],
+                extraQuestionsAdded: 0,
+                maxExtraQuestions: 5
+            };
 
-        const goToProgressButton = document.getElementById('goToProgressButton'); 
-        const goToTutorialSectionBtn = document.getElementById('goToTutorialSectionBtn');
-        const goToPracticeSectionBtn = document.getElementById('goToPracticeSectionBtn');
+            const save = () => localStorage.setItem('doraMathQuest', JSON.stringify(state));
+            const load = () => {
+                try {
+                    const saved = localStorage.getItem('doraMathQuest');
+                    if (saved) state = { ...state, ...JSON.parse(saved) };
+                    state.troubledAreas = state.troubledAreas || {};
+                    state.sessionHistory = state.sessionHistory || [];
+                    state.badges = state.badges || [];
+                    state.quickChallenges = state.quickChallenges || { attempts: 0, correct: 0, points: 0 };
+                    state.helpRequests = state.helpRequests || [];
+                    state.extraQuestionsAdded = state.extraQuestionsAdded || 0;
+                } catch (e) {
+                    console.error('Error loading state:', e);
+                }
+            };
 
-        const progressScreen = document.getElementById('progressScreen');
-        const startStudySessionButton = document.getElementById('startStudySessionButton'); // New button
-        const backToProgressFromStudyButton = document.getElementById('backToProgressFromStudyButton'); // New button for study screen
+            const updateStreak = () => {
+                const today = new Date().toISOString().split('T')[0];
+                if (state.lastPlayedDate) {
+                    const last = new Date(state.lastPlayedDate);
+                    const diffDays = Math.round((new Date(today) - last) / (24 * 60 * 60 * 1000));
+                    if (today === state.lastPlayedDate) return;
+                    if (diffDays === 1) {
+                        state.dailyStreak++;
+                        UIHandler.showFeedback(`Streak! ${state.dailyStreak} days in a row! 🔥`, 'correct');
+                    } else {
+                        if (state.dailyStreak > 0) UIHandler.showFeedback('Streak Broken! Start a new one! 😔', 'incorrect');
+                        state.dailyStreak = 0;
+                    }
+                }
+                state.lastPlayedDate = today;
+                if (UIHandler.elements.progress.streak) UIHandler.elements.progress.streak.textContent = state.dailyStreak;
+                save();
+            };
 
-        const studyModeScreen = document.getElementById('studyModeScreen'); // New study screen
-        const studyModeContent = document.getElementById('studyModeContent'); // Content area for study mode
+            const updateLevel = () => {
+                const newLevel = Math.floor(state.points / 150) + 1;
+                if (newLevel > state.level) {
+                    UIHandler.showFeedback(`Level Up! You reached Level ${newLevel}! 🎉`, 'correct');
+                    state.level = newLevel;
+                }
+                if (UIHandler.elements.progress.level) UIHandler.elements.progress.level.textContent = getLevelName(state.level);
+            };
 
-        const pointsDisplay = document.getElementById('pointsDisplay');
-        const levelDisplay = document.getElementById('levelDisplay');
-        const progressPoints = document.getElementById('progressPoints');
-        const progressLevel = document.getElementById('progressLevel');
-        const progressStreak = document.getElementById('progressStreak');
-        const badgesDisplay = document.getElementById('badgesDisplay');
-        const troubledAreasList = document.getElementById('troubledAreasList');
+            const unlockBadge = (id, name, emoji) => {
+                if (!state.badges.some(b => b.id === id)) {
+                    state.badges.push({ id, name, emoji });
+                    UIHandler.showFeedback(`New Badge Unlocked! ${name} ${emoji}`, 'correct');
+                    save();
+                    UIHandler.updateProgress();
+                }
+            };
 
-        const backToLandingButton = document.getElementById('backToLandingButton'); 
-        const sendReportButton = document.getElementById('sendReportButton'); 
+            return { state, save, load, updateStreak, updateLevel, unlockBadge };
+        })();
 
-        const feedbackMessage = document.getElementById('feedbackMessage');
+        // UI Handler Module
+        const UIHandler = (() => {
+            const elements = {
+                appContainer: document.getElementById('appContainer'),
+                feedbackMessage: document.getElementById('feedbackMessage'),
+                screens: {
+                    landing: document.getElementById('fullLandingPageContent'),
+                    progress: document.getElementById('progressScreen'),
+                    study: document.getElementById('studyModeScreen'),
+                    help: document.getElementById('helpScreen')
+                },
+                progress: {
+                    points: document.getElementById('progressPoints'),
+                    level: document.getElementById('levelDisplay'),
+                    streak: document.getElementById('progressStreak'),
+                    badges: document.getElementById('badgesDisplay'),
+                    troubled: document.getElementById('troubledAreasList'),
+                    studyBtn: document.getElementById('startStudySessionButton')
+                },
+                quickChallenge: {
+                    question: document.getElementById('quickChallengeQuestion'),
+                    input: document.getElementById('quickChallengeInput'),
+                    submit: document.getElementById('submitQuickChallenge'),
+                    feedback: document.getElementById('quickChallengeFeedback')
+                }
+            };
 
-        // --- Math Content ---
-        const tutorialTopics = [
-            {
-                id: 'bidmas_intro',
-                title: 'What is BIDMAS? 🤔',
-                steps: [
-                    { text: 'BIDMAS is our secret code to solve math problems! It tells us the correct order to do things.', emoji: '🔑' },
-                    { text: 'It stands for Brackets, Indices - \\(x^2\\) or \\(\\sqrt{}\\) - Division/Multiplication, Addition/Subtraction. Let\'s break it down!', emoji: '🔍' } 
-                ]
-            },
-            {
-                id: 'bidmas_brackets',
-                title: 'B is for Brackets! (\\( \\) )',
-                steps: [
-                    { text: 'Always solve anything INSIDE brackets first. They\'re super important!', emoji: '🚧' },
-                    { text: 'Example: In \\(8-2\\times(4+2)\\), we solve \\((4+2)\\) first, which is \\(6\\).', example: '8-2\\times(4+2) \\rightarrow 8-2\\times6' }
-                ]
-            },
-            {
-                id: 'bidmas_indices',
-                title: 'I is for Indices! (\\(x^2\\) or \\(\\sqrt{}\\))',
-                steps: [
-                    { text: 'Indices are powers (like \\(x^2\\)) or square roots (\\(\\sqrt{}\\)). Do these next!', emoji: '📈' },
-                    { text: 'Example: In \\((-2)^3 - 3 \\times -2\\), we solve \\((-2)^3\\) first, which is \\(-8\\).', example: '(-2)^3 - 3 \\times -2 \\rightarrow -8 - 3 \\times -2' }
-                ]
-            },
-            {
-                id: 'bidmas_division_multiplication',
-                title: 'DM is for Division & Multiplication! (\\(\\div \\times\\))',
-                steps: [
-                    { text: 'These two are a team! Do them from left to right as they appear.', emoji: '➡️' },
-                    { text: 'Example: In \\(72\\div8\\times-3\\), we do \\(72\\div8\\) first, which is \\(9\\). Then \\(9\\times-3\\).', example: '72\\div8\\times-3 \\rightarrow 9\\times-3' }
-                ]
-            },
-            {
-                id: 'bidmas_addition_subtraction',
-                title: 'AS is for Addition & Subtraction! (\\(+- \\))',
-                steps: [
-                    { text: 'These are also a team! Do them last, from left to right as they appear.', emoji: '✅' },
-                    { text: 'Example: In \\(8-8+2\\), we do \\(8-8\\) first, which is \\(0\\). Then \\(0+2\\).', example: '8-8+2 \\rightarrow 0+2' }
-                ]
-            },
-            {
-                id: 'bidmas_full_example',
-                title: 'Putting it all together!',
-                steps: [
-                    { text: 'Let\'s try a full problem: \\(5\\times6-3+(5-2)\\).', example: '5\\times6-3+(5-2)' },
-                    { text: '1. Brackets: \\((5-2) = 3\\)', example: '5\\times6-3+3' },
-                    { text: '2. Multiplication: \\(5\\times6 = 30\\)', example: '30-3+3' },
-                    { text: '3. Subtraction/Addition (left to right): \\(30-3 = 27\\), then \\(27+3 = 30\\).', example: '30-3+3 \\rightarrow 27+3 \\rightarrow 30' },
-                    { text: 'You\'ve got this, Explorer!', emoji: '🌟' }
-                ]
-            }
-        ];
+            let typesetQueue = [];
+            const typesetMath = () => {
+                if (window.MathJaxReady && typesetQueue.length) {
+                    window.MathJax.typesetPromise(typesetQueue)
+                        .then(() => typesetQueue = [])
+                        .catch(err => console.error('MathJax error:', err));
+                }
+            };
 
-        // Quiz Questions - Now fully interactive
-        const quizQuestions = [
-            { id: 'q1a', topic: 'calculations', question: '6+3\\times(-4)', answer: '-6', choices: ['-6', '36', '18', '12'] },
-            { id: 'q1b', topic: 'calculations', question: '18-\\frac{12}{-3}', answer: '22', choices: ['14', '22', '12', '10'] },
-            { id: 'q1c', topic: 'calculations', question: '8+(-4)-10', answer: '-6', choices: ['4', '-6', '-8', '6'] },
-            { id: 'q2b', topic: 'calculations', question: '72\\div8\\times(-3)', answer: '-27', choices: ['-27', '27', '-3', '3'] },
-            { id: 'q2c', topic: 'calculations', question: '7+(-3-4)', answer: '0', choices: ['0', '14', '-14', '7'] },
-            { id: 'q3b', topic: 'calculations', question: '-6\\times5-2\\times(-6)', answer: '-18', choices: ['-42', '-18', '18', '42'] },
-            { id: 'q4c', topic: 'indices', question: 'Evaluate: (-2)^3-3\\times(-2)', answer: '-2', choices: ['-2', '14', '-10', '2'] },
-            { id: 'q4b', topic: 'indices', question: 'Evaluate: -6-4+(-3)^2', answer: '-1', choices: ['-1', '11', '-19', '2'] },
-            { id: 'q5a', topic: 'indices', question: 'Evaluate: \\frac{-8}{2}+(-2)^2', answer: '0', choices: ['0', '-8', '4', '-2'] },
-            { id: 'q9', topic: 'word_problems', question: 'A submarine dives 100m (-100), rises 60m (+60), then dives 25m (-25). What is its final position (in meters)?', answer: '-65', choices: ['-65', '-15', '185', '35'] },
-            { id: 'q10', topic: 'word_problems', question: 'Jini has \\$2075. She makes 2 withdrawals of \\$150 each, then 5 deposits of \\$60 each. How much money does Jini have now?', answer: '2075', choices: ['1925', '2075', '2125', '1875'] },
-            { id: 'q11', topic: 'word_problems', question: 'A truck holds 156L diesel. After 4 days, 64L is left. What was the average fuel usage per day (in L)?', answer: '23', choices: ['23', '38', '15', '26'] },
-            { id: 'q16', topic: 'word_problems', question: 'A snail climbs 3cm (+3), slips back 2cm (-2), climbs 4cm (+4), and slips back 1cm (-1). How far is it from the bottom of the bucket?', answer: '4', choices: ['4', '10', '2', '6'] },
-            { id: 'q13a', topic: 'true_false', question: 'Is 5\\times6-3+(5-2) < 5\\times(6-3)+5-2 True or False?', answer: 'False', choices: ['True', 'False'] },
-            { id: 'q13b', topic: 'true_false', question: 'Is 2+(15\\div3)\\times1 = 2+15\\div(3\\times1) True or False?', answer: 'True', choices: ['True', 'False'] },
-        ];
+            const debounceTypeset = () => {
+                cancelAnimationFrame(typesetMath.raf);
+                typesetMath.raf = requestAnimationFrame(typesetMath);
+            };
 
+            const showScreen = (screen) => {
+                Object.values(elements.screens).forEach(s => s.classList.remove('active'));
+                screen.classList.add('active');
+                screen.scrollTo({ top: 0, behavior: 'smooth' });
+                screen.focus();
+                typesetQueue.push(screen);
+                debounceTypeset();
+            };
 
-        // --- Utility Functions ---
+            const showFeedback = (message, type) => {
+                elements.feedbackMessage.textContent = message;
+                elements.feedbackMessage.className = `feedback-message show ${type === 'correct' ? 'bg-green-600 border-green-500' : 'bg-red-600 border-red-500'}`;
+                setTimeout(() => elements.feedbackMessage.className = 'feedback-message', 1800);
+            };
 
-        /**
-         * Safely typesets elements with MathJax, waiting for it to be ready.
-         * @param {HTMLElement[]} elements - Array of DOM elements to typeset.
-         */
-        function typesetIfMathJaxReady(elements) {
-            if (window.MathJax && window.MathJax.typesetPromise) { 
-                window.MathJax.typesetPromise(elements).catch(err => {
-                    console.error("MathJax typesetting error for elements:", elements, err);
+            const updateProgress = () => {
+                const { points, level, dailyStreak, badges, troubledAreas } = StateManager.state;
+                elements.progress.points.textContent = points;
+                elements.progress.level.textContent = getLevelName(level);
+                elements.progress.streak.textContent = dailyStreak;
+
+                elements.progress.badges.innerHTML = badges.length
+                    ? badges.map(b => `<span class="p-3 bg-yellow-200 text-yellow-800 rounded-full shadow-md font-semibold text-base flex items-center gap-1">${b.emoji} ${sanitizeHTML(b.name)}</span>`).join('')
+                    : '<p class="text-gray-500 text-lg">No badges yet! Keep conquering quests!</p>';
+
+                const troubledTopics = Object.keys(troubledAreas).filter(t => troubledAreas[t] > 0);
+                elements.progress.troubled.innerHTML = troubledTopics.length
+                    ? troubledTopics.map(t => `<li class="mb-2">${sanitizeHTML(t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))} (Flagged: ${troubledAreas[t]} times)</li>`).join('')
+                    : '<p class="text-gray-500 text-lg">No areas to re-explore. Great job!</p>';
+
+                elements.progress.studyBtn.classList.toggle('hidden', !troubledTopics.length);
+            };
+
+            return { elements, showScreen, showFeedback, updateProgress, typesetQueue, debounceTypeset };
+        })();
+
+        // Content Renderer Module
+        const ContentRenderer = (() => {
+            const tutorialTopics = [
+                {
+                    id: 'bidmas_intro',
+                    title: 'What is BIDMAS? 🤔',
+                    steps: [
+                        { text: 'BIDMAS is our secret code to solve math problems! It tells us the correct order to do things.', emoji: '🔑' },
+                        { text: 'It stands for Brackets, Indices - \\(x^2\\) or \\(\\sqrt{}\\) - Division/Multiplication, Addition/Subtraction. Let\'s break it down!', emoji: '🔍' }
+                    ]
+                },
+                {
+                    id: 'bidmas_brackets',
+                    title: 'B is for Brackets! (\\( \\) )',
+                    steps: [
+                        { text: 'Always solve anything INSIDE brackets first. They\'re super important!', emoji: '🚧' },
+                        { text: 'Example: In \\(8-2\\times(4+2)\\), we solve \\((4+2)\\) first, which is \\(6\\).', example: '8-2\\times(4+2) \\rightarrow 8-2\\times6' }
+                    ]
+                },
+                {
+                    id: 'bidmas_indices',
+                    title: 'I is for Indices! (\\(x^2\\) or \\(\\sqrt{}\\))',
+                    steps: [
+                        { text: 'Indices are powers (like \\(x^2\\)) or square roots (\\(\\sqrt{}\\)). Do these next!', emoji: '📈' },
+                        { text: 'Example: In \\((-2)^3 - 3 \\times -2\\), we solve \\((-2)^3\\) first, which is \\(-8\\).', example: '(-2)^3 - 3 \\times -2 \\rightarrow -8 - 3 \\times -2' }
+                    ]
+                },
+                {
+                    id: 'bidmas_division_multiplication',
+                    title: 'DM is for Division & Multiplication! (\\(\\div \\times\\))',
+                    steps: [
+                        { text: 'These two are a team! Do them from left to right as they appear.', emoji: '➡️' },
+                        { text: 'Example: In \\(72\\div8\\times-3\\), we do \\(72\\div8\\) first, which is \\(9\\). Then \\(9\\times-3\\).', example: '72\\div8\\times-3 \\rightarrow 9\\times-3' }
+                    ]
+                },
+                {
+                    id: 'bidmas_addition_subtraction',
+                    title: 'AS is for Addition & Subtraction! (\\(+- \\))',
+                    steps: [
+                        { text: 'These are also a team! Do them last, from left to right as they appear.', emoji: '✅' },
+                        { text: 'Example: In \\(8-8+2\\), we do \\(8-8\\) first, which is \\(0\\). Then \\(0+2\\).', example: '8-8+2 \\rightarrow 0+2' }
+                    ]
+                },
+                {
+                    id: 'bidmas_full_example',
+                    title: 'Putting it all together!',
+                    steps: [
+                        { text: 'Let\'s try a full problem: \\(5\\times6-3+(5-2)\\).', example: '5\\times6-3+(5-2)' },
+                        { text: '1. Brackets: \\((5-2) = 3\\)', example: '5\\times6-3+3' },
+                        { text: '2. Multiplication: \\(5\\times6 = 30\\)', example: '30-3+3' },
+                        { text: '3. Subtraction/Addition (left to right): \\(30-3 = 27\\), then \\(27+3 = 30\\).', example: '30-3+3 \\rightarrow 27+3 \\rightarrow 30' },
+                        { text: 'You\'ve got this, Explorer!', emoji: '🌟' }
+                    ]
+                }
+            ];
+
+            const quizQuestions = [
+                { id: 'q1', topic: 'bidmas_brackets', question: '5 + (3 \\times 2)', answer: '11', choices: ['11', '15', '8', '20'] },
+                { id: 'q2', topic: 'bidmas_brackets', question: '10 - (4 + 3)', answer: '3', choices: ['3', '7', '10', '1'] },
+                { id: 'q3', topic: 'bidmas_brackets', question: '(6 + 2) \\times 3', answer: '24', choices: ['24', '18', '21', '12'] },
+                { id: 'q4', topic: 'bidmas_indices', question: '2 + (-2)^2', answer: '6', choices: ['6', '0', '4', '8'] },
+                { id: 'q5', topic: 'bidmas_indices', question: '(-3)^2 - 5', answer: '4', choices: ['4', '-14', '9', '-9'] },
+                { id: 'q6', topic: 'bidmas_indices', question: '10 \\div 2 + (-2)^3', answer: '-3', choices: ['-3', '5', '13', '-8'] },
+                { id: 'q7', topic: 'bidmas_division_multiplication', question: '12 \\div 4 \\times 2', answer: '6', choices: ['6', '1.5', '8', '3'] },
+                { id: 'q8', topic: 'bidmas_division_multiplication', question: '3 \\times 5 \\div 3', answer: '5', choices: ['5', '15', '1', '9'] },
+                { id: 'q9', topic: 'bidmas_division_multiplication', question: '20 \\div 5 \\times (-2)', answer: '-8', choices: ['-8', '8', '-4', '2'] },
+                { id: 'q10', topic: 'bidmas_addition_subtraction', question: '7 - 4 + 2', answer: '5', choices: ['5', '9', '3', '1'] },
+                { id: 'q11', topic: 'bidmas_addition_subtraction', question: '10 + 3 - 8', answer: '5', choices: ['5', '21', '1', '11'] },
+                { id: 'q12', topic: 'bidmas_addition_subtraction', question: '-2 + 6 - 3', answer: '1', choices: ['1', '-1', '7', '5'] },
+                { id: 'q13', topic: 'bidmas_brackets', question: '4 \\times (5 - 2)', answer: '12', choices: ['12', '18', '7', '20'] },
+                { id: 'q14', topic: 'bidmas_indices', question: '3^2 - 4', answer: '5', choices: ['5', '13', '1', '9'] },
+                { id: 'q15', topic: 'bidmas_division_multiplication', question: '15 \\div 3 \\times 2', answer: '10', choices: ['10', '2', '15', '6'] }
+            ];
+
+            const extraQuestionsPool = [
+                { id: 'e1', topic: 'bidmas_brackets', question: '(7 + 3) \\times 2', answer: '20', choices: ['20', '17', '12', '10'] },
+                { id: 'e2', topic: 'bidmas_brackets', question: '8 - (2 + 1)', answer: '5', choices: ['5', '7', '3', '9'] },
+                { id: 'e3', topic: 'bidmas_indices', question: '(-2)^2 + 5', answer: '9', choices: ['9', '4', '-4', '1'] },
+                { id: 'e4', topic: 'bidmas_indices', question: '10 - 3^2', answer: '1', choices: ['1', '7', '9', '-1'] },
+                { id: 'e5', topic: 'bidmas_division_multiplication', question: '6 \\times 2 \\div 3', answer: '4', choices: ['4', '12', '1', '6'] },
+                { id: 'e6', topic: 'bidmas_division_multiplication', question: '18 \\div 3 \\times 4', answer: '24', choices: ['24', '6', '12', '2'] },
+                { id: 'e7', topic: 'bidmas_addition_subtraction', question: '5 + 2 - 4', answer: '3', choices: ['3', '7', '1', '5'] },
+                { id: 'e8', topic: 'bidmas_addition_subtraction', question: '-3 + 7 - 2', answer: '2', choices: ['2', '8', '-2', '4'] },
+                { id: 'e9', topic: 'bidmas_brackets', question: '3 + (4 \\times 2)', answer: '11', choices: ['11', '14', '8', '20'] },
+                { id: 'e10', topic: 'bidmas_indices', question: '2^3 - 5', answer: '3', choices: ['3', '8', '13', '-3'] }
+            ];
+
+            let activeQuestions = [...quizQuestions];
+
+            const renderTutorial = () => {
+                const section = document.getElementById('tutorialSection');
+                section.innerHTML = '';
+                tutorialTopics.forEach(topic => {
+                    const div = document.createElement('div');
+                    div.className = 'content-section';
+                    div.innerHTML = `<h3>${sanitizeHTML(topic.title)}</h3>`;
+                    topic.steps.forEach(step => {
+                        div.innerHTML += `<p>${sanitizeHTML(step.text)}</p>`;
+                        if (step.example) div.innerHTML += `<div class="example-math">\\[${sanitizeHTML(step.example)}\\]</div>`;
+                        if (step.emoji) div.innerHTML += `<span class="emoji-display">${sanitizeHTML(step.emoji)}</span>`;
+                    });
+                    section.appendChild(div);
                 });
-            } else {
-                // If MathJax isn't ready yet, retry after a short delay
-                setTimeout(() => typesetIfMathJaxReady(elements), 100); 
-            }
-        }
+                UIHandler.typesetQueue.push(section);
+                UIHandler.debounceTypeset();
+            };
 
-        /**
-         * Switches the displayed screen.
-         * @param {HTMLElement} screenToShow - The DOM element of the screen to display.
-         */
-        function showScreen(screenToShow) {
-            // All 'screen' divs should be hidden by default
-            const allScreens = [fullLandingPageContent, progressScreen, studyModeScreen]; // Include new screen
-            allScreens.forEach(screen => {
-                screen.classList.remove('active');
-            });
+            const renderQuiz = () => {
+                const section = document.getElementById('practiceSection');
+                section.innerHTML = `<h3>Practice Challenges! 🧠</h3><p class="text-lg text-gray-600 mb-4 text-center">Answer ${activeQuestions.length} questions to test your BIDMAS skills!</p>`;
+                activeQuestions.forEach((q, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'question-item';
+                    item.dataset.questionId = q.id;
+                    item.innerHTML = `<p class="question-text">${i + 1}. \\(${sanitizeHTML(q.question)}\\)</p><div class="question-choices"></div><div class="feedback-area mt-4"></div>`;
+                    const choices = item.querySelector('.question-choices');
+                    const shuffled = [...q.choices].sort(() => Math.random() - 0.5);
+                    shuffled.forEach(c => {
+                        const btn = document.createElement('button');
+                        btn.className = 'choice-btn';
+                        btn.innerHTML = `\\(${sanitizeHTML(c)}\\)`;
+                        btn.dataset.choice = c;
+                        btn.setAttribute('aria-label', `Choose ${c} for question ${i + 1}`);
+                        choices.appendChild(btn);
+                    });
+                    const skipBtn = document.createElement('button');
+                    skipBtn.className = 'skip-button choice-btn';
+                    skipBtn.textContent = "Don't Understand 💡";
+                    skipBtn.dataset.choice = "Don't Understand 💡";
+                    skipBtn.setAttribute('aria-label', 'Skip question and review');
+                    choices.appendChild(skipBtn);
+                    section.appendChild(item);
+                });
+                UIHandler.typesetQueue.push(section);
+                UIHandler.debounceTypeset();
+                StateManager.state.sessionHistory.push({
+                    date: new Date().toLocaleString(),
+                    type: 'worksheet_practice',
+                    questionsAttempted: 0,
+                    correctAnswers: 0,
+                    pointsEarned: 0,
+                    troubledTopics: [],
+                    troubledQuestions: [],
+                    durationMinutes: 0
+                });
+                StateManager.save();
+            };
 
-            // Show the target screen
-            screenToShow.classList.add('active');
+            const handleAnswer = (e, question, item) => {
+                const choice = e.target.dataset.choice;
+                const choices = item.querySelectorAll('.choice-btn');
+                choices.forEach(btn => btn.disabled = true);
+                const feedback = item.querySelector('.feedback-area');
+                const session = StateManager.state.sessionHistory[StateManager.state.sessionHistory.length - 1];
 
-            // Scroll to top of the specific screen's scrollable content if it exists
-            if (screenToShow === fullLandingPageContent) {
-                appContainer.scrollTo({ top: 0, behavior: 'smooth' }); 
-            } else if (screenToShow === progressScreen) {
-                progressScreen.scrollTo({ top: 0, behavior: 'smooth' }); 
-            } else if (screenToShow === studyModeScreen) { // Scroll for study screen
-                studyModeScreen.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-            
-            // Trigger MathJax typesetting for the newly displayed screen
-            typesetIfMathJaxReady([screenToShow]);
-        }
+                if (choice === "Don't Understand 💡") {
+                    UIHandler.showFeedback("Review the topics above!", "incorrect");
+                    feedback.innerHTML = `<p class="text-red-600 font-semibold">Review tutorials. Answer: \\(${sanitizeHTML(question.answer)}\\)</p>`;
+                    StateManager.state.troubledAreas[question.topic] = (StateManager.state.troubledAreas[question.topic] || 0) + 1;
+                    if (!session.troubledTopics.includes(question.topic)) session.troubledTopics.push(question.topic);
+                    if (!session.troubledQuestions.includes(question.id)) session.troubledQuestions.push(question.id);
+                } else {
+                    const isCorrect = choice === question.answer;
+                    UIHandler.showFeedback(isCorrect ? "Correct! 🎉" : "Incorrect. 🤔", isCorrect ? "correct" : "incorrect");
+                    feedback.innerHTML = `<p class="${isCorrect ? 'text-green-600' : 'text-red-600'} font-semibold">${isCorrect ? 'Correct!' : `Incorrect. Answer: \\(${sanitizeHTML(question.answer)}\\)`}</p>`;
+                    if (isCorrect) {
+                        StateManager.state.points += 25;
+                        session.correctAnswers++;
+                        session.pointsEarned += 25;
+                        if (StateManager.state.troubledAreas[question.topic]) {
+                            StateManager.state.troubledAreas[question.topic]--;
+                            if (StateManager.state.troubledAreas[question.topic] === 0) delete StateManager.state.troubledAreas[question.topic];
+                        }
+                        e.target.classList.add('correct-animation');
+                        if (StateManager.state.points >= 100) StateManager.unlockBadge('first_math_master', 'First Math Master', '✨');
+                        if (StateManager.state.points >= 250) StateManager.unlockBadge('integer_navigator', 'Integer Navigator', '🧭');
+                    } else {
+                        StateManager.state.troubledAreas[question.topic] = (StateManager.state.troubledAreas[question.topic] || 0) + 1;
+                        if (!session.troubledTopics.includes(question.topic)) session.troubledTopics.push(question.topic);
+                        if (!session.troubledQuestions.includes(question.id)) session.troubledQuestions.push(question.id);
+                        e.target.classList.add('incorrect-animation');
+                    }
+                }
+                session.questionsAttempted++;
+                StateManager.updateLevel();
+                StateManager.save();
+                UIHandler.updateProgress();
+                UIHandler.typesetQueue.push(feedback);
+                UIHandler.debounceTypeset();
+            };
 
-        /**
-         * Displays a temporary feedback message.
-         * @param {string} message - The message text.
-         * @param {string} type - 'correct' or 'incorrect' for styling.
-         */
-        function displayFeedback(message, type) {
-            feedbackMessage.textContent = message;
-            feedbackMessage.className = 'feedback-message show';
-            if (type === 'correct') {
-                feedbackMessage.classList.add('bg-green-600');
-                feedbackMessage.style.borderColor = '#10B981';
-            } else if (type === 'incorrect') {
-                feedbackMessage.classList.add('bg-red-600');
-                feedbackMessage.style.borderColor = '#EF4444';
-            }
+            const renderStudySession = () => {
+                const content = document.getElementById('studyModeContent');
+                content.innerHTML = `<div class="loading-indicator"><div class="loading-spinner"></div><p>Dora is preparing your lesson...</p></div>`;
+                setTimeout(() => {
+                    const troubledTopics = Object.keys(StateManager.state.troubledAreas).filter(t => StateManager.state.troubledAreas[t] > 0);
+                    if (!troubledTopics.length) {
+                        content.innerHTML = `<p class="text-lg text-gray-700">No troubled areas to study right now. Keep up the great work! 🌟</p>`;
+                        return;
+                    }
+                    const topic = troubledTopics.reduce((max, t) => StateManager.state.troubledAreas[t] > (StateManager.state.troubledAreas[max] || 0) ? t : max, troubledTopics[0]);
+                    const cleanTopic = topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    content.innerHTML = `
+                        <p class="text-lg text-gray-700">Let's review ${cleanTopic}! Follow the BIDMAS order: Brackets, Indices, Division/Multiplication, Addition/Subtraction.</p>
+                        <p class="text-lg text-gray-700">Example: For \\(6 + 3 \\times (-2)\\), multiply first: \\(3 \\times (-2) = -6\\), then add: \\(6 + (-6) = 0\\).</p>
+                        <p class="text-lg text-gray-700">Keep practicing, Explorer! You’re doing amazing! 🌟</p>
+                    `;
+                    UIHandler.typesetQueue.push(content);
+                    UIHandler.debounceTypeset();
+                }, 1000);
+            };
 
-            setTimeout(() => {
-                feedbackMessage.classList.remove('show', 'bg-green-600', 'bg-red-600');
-                feedbackMessage.style.borderColor = 'white'; 
-            }, 1800);
-        }
+            const generateQuickChallenge = () => {
+                const operations = ['+', '-', '\\times', '\\div'];
+                const numbers = [Math.floor(Math.random() * 10) + 1, Math.floor(Math.random() * 10) + 1, Math.floor(Math.random() * 10) + 1];
+                const op1 = operations[Math.floor(Math.random() * 2)]; // + or -
+                const op2 = operations[Math.floor(Math.random() * 2) + 2]; // × or ÷
+                const question = `${numbers[0]}${op1}(${numbers[1]}${op2}${numbers[2]})`;
+                let answer;
+                if (op2 === '\\times') answer = numbers[1] * numbers[2];
+                else answer = numbers[1] / numbers[2];
+                if (op1 === '+') answer = numbers[0] + answer;
+                else answer = numbers[0] - answer;
+                return { question: `\\(${question}\\)` , answer: String(Math.round(answer * 100) / 100) };
+            };
 
-        /**
-         * Saves the current app state to localStorage.
-         */
-        function saveAppState() {
-            localStorage.setItem('doraMathQuest', JSON.stringify(appState));
-        }
+            const renderQuickChallenge = () => {
+                const { question, answer } = generateQuickChallenge();
+                UIHandler.elements.quickChallenge.question.innerHTML = question;
+                UIHandler.elements.quickChallenge.question.dataset.answer = answer;
+                UIHandler.elements.quickChallenge.input.value = '';
+                UIHandler.elements.quickChallenge.feedback.textContent = '';
+                UIHandler.typesetQueue.push(UIHandler.elements.quickChallenge.question);
+                UIHandler.debounceTypeset();
+            };
 
-        /**
-         * Loads the app state from localStorage and initializes missing properties.
-         */
-        function loadAppState() {
-            const savedState = localStorage.getItem('doraMathQuest');
-            if (savedState) {
-                appState = JSON.parse(savedState);
-                appState.dailyStreak = appState.dailyStreak || 0;
-                appState.lastPlayedDate = appState.lastPlayedDate || null;
-                appState.troubledAreas = appState.troubledAreas || {};
-                appState.sessionHistory = appState.sessionHistory || [];
-                appState.badges = appState.badges || [];
-            }
-            checkDailyStreak(); 
-        }
+            const handleQuickChallenge = () => {
+                const input = UIHandler.elements.quickChallenge.input.value.trim();
+                const correctAnswer = UIHandler.elements.quickChallenge.question.dataset.answer;
+                StateManager.state.quickChallenges.attempts++;
+                if (input === correctAnswer) {
+                    StateManager.state.points += 10;
+                    StateManager.state.quickChallenges.correct++;
+                    StateManager.state.quickChallenges.points += 10;
+                    UIHandler.showFeedback('Correct! +10 Points! 🎉', 'correct');
+                    UIHandler.elements.quickChallenge.feedback.textContent = 'Great job! Try another!';
+                    UIHandler.elements.quickChallenge.feedback.className = 'text-green-600 font-semibold mt-4 text-lg';
+                    if (StateManager.state.quickChallenges.correct >= 5) StateManager.unlockBadge('quick_challenger', 'Quick Challenger', '⚡');
+                } else {
+                    UIHandler.showFeedback('Try Again! 🤔', 'incorrect');
+                    UIHandler.elements.quickChallenge.feedback.textContent = `Incorrect. The answer is ${correctAnswer}.`;
+                    UIHandler.elements.quickChallenge.feedback.className = 'text-red-600 font-semibold mt-4 text-lg';
+                }
+                StateManager.updateLevel();
+                StateManager.save();
+                UIHandler.updateProgress();
+                setTimeout(renderQuickChallenge, 2000);
+            };
 
-        /**
-         * Updates points and level displays across the app.
-         */
-        function updatePointsAndLevelDisplay() {
-            if(pointsDisplay) pointsDisplay.textContent = appState.points;
-            if(levelDisplay) levelDisplay.textContent = getLevelName(appState.level);
-            if(progressPoints) progressPoints.textContent = appState.points;
-            if(progressLevel) progressLevel.textContent = getLevelName(appState.level);
-            updateLevel(); 
-        }
+            const addExtraQuestion = (topic) => {
+                if (StateManager.state.extraQuestionsAdded >= StateManager.state.maxExtraQuestions) {
+                    UIHandler.showFeedback('Max extra challenges added! Review tutorials for more help!', 'incorrect');
+                    return;
+                }
+                const availableQuestions = extraQuestionsPool.filter(q => q.topic === topic && !activeQuestions.some(aq => aq.id === q.id));
+                if (!availableQuestions.length) {
+                    UIHandler.showFeedback('No more extra questions for this topic!', 'incorrect');
+                    return;
+                }
+                const newQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+                activeQuestions.push({ ...newQuestion, id: `e${StateManager.state.extraQuestionsAdded + 1}_${newQuestion.id}` });
+                StateManager.state.extraQuestionsAdded++;
+                StateManager.save();
+                renderQuiz();
+                UIHandler.showFeedback('New challenge added to Practice section!', 'incorrect');
+            };
 
-        /**
-         * Calculates and updates the user's adventure level.
-         */
-        function updateLevel() {
-            const newLevel = Math.floor(appState.points / 150) + 1; 
-            if (newLevel > appState.level) {
-                displayFeedback(`Level Up! You reached Level ${newLevel}! 🎉`, 'correct');
-                appState.level = newLevel;
-            }
-            if(levelDisplay) levelDisplay.textContent = getLevelName(appState.level);
-            if(progressLevel) progressLevel.textContent = getLevelName(appState.level);
-        }
+            const renderHelpContent = (topic, question = '') => {
+                const content = document.getElementById('helpContent');
+                content.innerHTML = `<div class="loading-indicator"><div class="loading-spinner"></div><p>Dora is fetching your help...</p></div>`;
+                setTimeout(() => {
+                    if (question) {
+                        const prompt = `I'm struggling with a math problem: ${question}. I'm learning BIDMAS (Brackets, Indices, Division/Multiplication, Addition/Subtraction). Can you explain how to solve it step-by-step using BIDMAS?`;
+                        content.innerHTML = `
+                            <p class="text-lg text-gray-700">Your question has been noted! Explore it further with Dora's AI Helper.</p>
+                            <a href="https://grok.x.ai/?prompt=${encodeURIComponent(prompt)}" target="_blank" class="btn btn-secondary mt-4">Ask Grok for Insight</a>
+                        `;
+                        StateManager.state.helpRequests.push({ date: new Date().toLocaleString(), type: 'question', content: question });
+                    } else if (topic) {
+                        const topicData = {
+                            'bidmas_brackets': { text: 'Solve brackets first.', example: '(3 + 2) \\times 4 = 5 \\times 4 = 20' },
+                            'bidmas_indices': { text: 'Handle powers or roots next.', example: '(-2)^2 + 3 = 4 + 3 = 7' },
+                            'bidmas_division_multiplication': { text: 'Do division and multiplication left to right.', example: '6 \\div 2 \\times 3 = 3 \\times 3 = 9' },
+                            'bidmas_addition_subtraction': { text: 'Do addition and subtraction last, left to right.', example: '10 - 4 + 2 = 6 + 2 = 8' }
+                        }[topic] || { text: 'Select a topic for a hint!', example: '' };
+                        content.innerHTML = `
+                            <p class="text-lg text-gray-700">${topicData.text}</p>
+                            ${topicData.example ? `<div class="example-math">\\[${topicData.example}\\]</div>` : ''}
+                            <p class="text-lg text-gray-700">Need more help? Ask a question below!</p>
+                        `;
+                        StateManager.state.helpRequests.push({ date: new Date().toLocaleString(), type: 'hint', content: topic });
+                        addExtraQuestion(topic);
+                    } else {
+                        content.innerHTML = `<p class="text-lg text-gray-700">Please select a topic or ask a question!</p>`;
+                    }
+                    StateManager.save();
+                    UIHandler.typesetQueue.push(content);
+                    UIHandler.debounceTypeset();
+                }, 1000);
+            };
 
-        /**
-         * Returns a descriptive name for the given level.
-         * @param {number} level - The level number.
-         * @returns {string} The level name.
-         */
-        function getLevelName(level) {
+            return { tutorialTopics, quizQuestions, extraQuestionsPool, activeQuestions, renderTutorial, renderQuiz, handleAnswer, renderStudySession, renderQuickChallenge, handleQuickChallenge, renderHelpContent, addExtraQuestion };
+        })();
+
+        // Utility Functions
+        const getLevelName = (level) => {
             if (level < 3) return 'Novice Explorer';
             if (level < 6) return 'Junior Navigator';
             if (level < 10) return 'Equation Expert';
             if (level < 15) return 'Formula Master';
             return 'Integer Island Legend!';
-        }
-
-        /**
-         * Checks and updates the daily streak based on last played date.
-         */
-        function checkDailyStreak() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); 
-            const todayString = today.toISOString().split('T')[0];
-
-            if (appState.lastPlayedDate) {
-                const lastPlayed = new Date(appState.lastPlayedDate);
-                lastPlayed.setHours(0, 0, 0, 0);
-
-                const oneDay = 24 * 60 * 60 * 1000; 
-                const diffDays = Math.round(Math.abs((today.getTime() - lastPlayed.getTime()) / oneDay));
-
-                if (todayString === appState.lastPlayedDate) {
-                } else if (diffDays === 1) {
-                    appState.dailyStreak++;
-                    displayFeedback(`Streak! ${appState.dailyStreak} days in a row! 🔥`, 'correct');
-                } else {
-                    if (appState.dailyStreak > 0) {
-                        displayFeedback('Streak Broken! Start a new one! 😔', 'incorrect');
-                    }
-                    appState.dailyStreak = 0;
-                }
-            } else {
-                appState.dailyStreak = 0;
-            }
-            appState.lastPlayedDate = todayString;
-            if(progressStreak) progressStreak.textContent = appState.dailyStreak;
-            saveAppState();
-        }
-
-        /**
-         * Unlocks a badge if not already earned.
-         * @param {string} id - Badge ID.
-         * @param {string} name - Badge display name.
-         * @param {string} emoji - Badge emoji.
-         */
-        function unlockBadge(id, name, emoji) {
-            if (!appState.badges.some(badge => badge.id === id)) {
-                appState.badges.push({ id, name, emoji });
-                displayFeedback(`New Badge Unlocked! ${name} ${emoji}`, 'correct');
-                saveAppState();
-                updateProgressScreen();
-            }
-        }
-        
-        // --- Content Generation (Consolidated) ---
-
-        /**
-         * Handles user's answer submission for an interactive question.
-         * @param {string} userAnswer - The answer submitted by the user.
-         * @param {object} question - The question object.
-         * @param {HTMLElement} questionItemElem - The DOM element for the current question.
-         */
-        function handleAnswer(userAnswer, question, questionItemElem) {
-            const choiceButtons = questionItemElem.querySelectorAll('.choice-btn');
-            choiceButtons.forEach(btn => btn.disabled = true); // Disable all choices after selection
-
-            const isCorrect = (userAnswer === question.answer);
-            const feedbackArea = questionItemElem.querySelector('.feedback-area'); // Area to display feedback
-
-            // Update troubled areas logic
-            const sessionRecord = appState.sessionHistory[appState.sessionHistory.length - 1] || { questionsAttempted: 0, correctAnswers: 0, pointsEarned: 0, troubledTopics: [] };
-            sessionRecord.questionsAttempted = (sessionRecord.questionsAttempted || 0) + 1;
-
-            if (userAnswer === "Don't Understand 💡") { 
-                displayFeedback("It's okay! Review the topics above.", "incorrect");
-                feedbackArea.innerHTML = `<p class="text-red-600 mt-2 font-semibold">Review related tutorials above. The answer is: \\(${question.answer}\\)</p>`; 
-                typesetIfMathJaxReady([feedbackArea]); 
-                // Increment troubled area count for this topic
-                appState.troubledAreas[question.topic] = (appState.troubledAreas[question.topic] || 0) + 1;
-                if (!sessionRecord.troubledTopics.includes(question.topic)) {
-                    sessionRecord.troubledTopics.push(question.topic);
-                }
-            } else if (isCorrect) {
-                displayFeedback("Correct! 🎉", "correct");
-                feedbackArea.innerHTML = `<p class="text-green-600 mt-2 font-semibold">Correct! Well done!</p>`;
-                appState.points += 25; // Award points for correct answer
-                sessionRecord.correctAnswers = (sessionRecord.correctAnswers || 0) + 1;
-                sessionRecord.pointsEarned = (sessionRecord.pointsEarned || 0) + 25;
-                // Reset trouble for this topic if they got it right, or decrement
-                if (appState.troubledAreas[question.topic] && appState.troubledAreas[question.topic] > 0) {
-                    appState.troubledAreas[question.topic]--;
-                    if (appState.troubledAreas[question.topic] === 0) {
-                        delete appState.troubledAreas[question.topic]; // Remove if count is 0
-                    }
-                }
-
-                // Check for badges
-                if (appState.points >= 100 && !appState.badges.some(b => b.id === 'first_math_master')) {
-                    unlockBadge('first_math_master', 'First Math Master', '✨');
-                }
-                if (appState.points >= 250 && !appState.badges.some(b => b.id === 'integer_navigator')) {
-                    unlockBadge('integer_navigator', 'Integer Navigator', '🧭');
-                }
-
-                // Add animation to the correct button if multiple choice
-                const selectedButton = Array.from(choiceButtons).find(btn => btn.textContent === userAnswer);
-                if (selectedButton) {
-                    selectedButton.classList.add('correct-animation');
-                }
-
-            } else {
-                displayFeedback("Incorrect. 🤔", "incorrect");
-                feedbackArea.innerHTML = `<p class="text-red-600 mt-2 font-semibold">Incorrect. The answer is: \\(${question.answer}\\)</p>`; 
-                typesetIfMathJaxReady([feedbackArea]); 
-                // Increment troubled area count for this topic
-                appState.troubledAreas[question.topic] = (appState.troubledAreas[question.topic] || 0) + 1;
-                if (!sessionRecord.troubledTopics.includes(question.topic)) {
-                    sessionRecord.troubledTopics.push(question.topic);
-                }
-
-                // Add animation to the incorrect button if multiple choice
-                const selectedButton = Array.from(choiceButtons).find(btn => btn.textContent === userAnswer);
-                if (selectedButton) {
-                    selectedButton.classList.add('incorrect-animation');
-                }
-            }
-            saveAppState(); // Save state after each answer
-            updatePointsAndLevelDisplay(); // Update display immediately
-        }
-
-        /**
-         * Renders all tutorial and quiz content into the full landing page div.
-         */
-        function loadFullWorksheetContent() {
-            tutorialSection.innerHTML = ''; // Clear tutorial section
-            practiceSection.innerHTML = `
-                <h3>Practice Challenges! 🧠</h3>
-                <p class="text-lg text-gray-600 mb-4 text-center">Answer the questions below to test your knowledge!</p>
-            `; // Clear practice section
-
-            // Add tutorial content
-            tutorialTopics.forEach(topic => {
-                const topicSection = document.createElement('div');
-                topicSection.classList.add('content-section'); 
-                topicSection.innerHTML = `<h3>${topic.title}</h3>`; 
-
-                topic.steps.forEach(step => {
-                    const stepP = document.createElement('p');
-                    stepP.innerHTML = step.text; 
-                    topicSection.appendChild(stepP);
-
-                    if (step.example) {
-                        const exampleDiv = document.createElement('div');
-                        exampleDiv.classList.add('example-math');
-                        exampleDiv.innerHTML = `\\[${step.example}\\]`; // Use \[...\] for display math
-                        topicSection.appendChild(exampleDiv);
-                    }
-                    if (step.emoji) {
-                        const emojiSpan = document.createElement('span');
-                        emojiSpan.classList.add('emoji-display');
-                        emojiSpan.innerHTML = step.emoji; 
-                        topicSection.appendChild(emojiSpan);
-                    }
-                });
-                tutorialSection.appendChild(topicSection);
-            });
-
-            // Add interactive quiz questions
-            quizQuestions.forEach((question, index) => {
-                const questionItem = document.createElement('div');
-                questionItem.classList.add('question-item');
-                questionItem.setAttribute('data-question-id', question.id); 
-
-                const questionTextElem = document.createElement('p');
-                questionTextElem.classList.add('question-text');
-                questionTextElem.innerHTML = `${index + 1}. \\(${question.question}\\)`; // Use \(...\) for inline math
-                questionItem.appendChild(questionTextElem);
-
-                const choicesContainer = document.createElement('div');
-                choicesContainer.classList.add('question-choices');
-
-                // Shuffle choices including the correct answer
-                let shuffledChoices = [...question.choices];
-                for (let i = shuffledChoices.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [shuffledChoices[i], shuffledChoices[j]] = [shuffledChoices[j], shuffledChoices[i]];
-                }
-
-                shuffledChoices.forEach(choice => {
-                    const choiceBtn = document.createElement('button');
-                    choiceBtn.classList.add('choice-btn');
-                    choiceBtn.innerHTML = `\\(${choice}\\)`; // Use \(...\) for inline math in choices
-                    choiceBtn.addEventListener('click', () => handleAnswer(choice, question, questionItem));
-                    choicesContainer.appendChild(choiceBtn);
-                });
-
-                // Add "Don't Understand" button
-                const dontUnderstandBtn = document.createElement('button');
-                dontUnderstandBtn.classList.add('skip-button', 'choice-btn'); 
-                dontUnderstandBtn.innerHTML = "Don't Understand 💡"; 
-                dontUnderstandBtn.addEventListener('click', () => handleAnswer("Don't Understand 💡", question, questionItem)); 
-                choicesContainer.appendChild(dontUnderstandBtn);
-
-                questionItem.appendChild(choicesContainer);
-
-                const feedbackArea = document.createElement('div');
-                feedbackArea.classList.add('feedback-area', 'mt-4'); 
-                questionItem.appendChild(feedbackArea);
-
-                practiceSection.appendChild(questionItem);
-            });
-
-            typesetIfMathJaxReady([appContainer]);
-
-            appState.sessionHistory.push({
-                date: new Date().toLocaleString(),
-                type: 'worksheet_practice',
-                questionsAttempted: 0,
-                correctAnswers: 0,
-                pointsEarned: 0,
-                troubledTopics: [],
-                durationMinutes: 0 
-            });
-            saveAppState();
-        }
-
-        // --- Progress Screen Logic ---
-        /**
-         * Updates and displays the progress screen.
-         */
-        function updateProgressScreen() {
-            updatePointsAndLevelDisplay(); 
-
-            if(progressStreak) progressStreak.textContent = appState.dailyStreak;
-
-            // Badges
-            badgesDisplay.innerHTML = '';
-            if (appState.badges.length === 0) {
-                badgesDisplay.innerHTML = '<p class="text-gray-500 text-lg">No badges yet! Keep conquering quests!</p>';
-            } else {
-                appState.badges.forEach(badge => {
-                    const badgeElem = document.createElement('span');
-                    badgeElem.classList.add('p-3', 'bg-yellow-200', 'text-yellow-800', 'rounded-full', 'shadow-md', 'font-semibold', 'text-base', 'flex', 'items-center', 'gap-1', 'justify-center');
-                    badgeElem.innerHTML = `${badge.emoji} ${badge.name}`;
-                    badgesDisplay.appendChild(badgeElem);
-                });
-            }
-
-            // Troubled Areas
-            troubledAreasList.innerHTML = '';
-            const uniqueTroubledTopics = Object.keys(appState.troubledAreas).filter(topic => appState.troubledAreas[topic] > 0);
-            if (uniqueTroubledTopics.length === 0) {
-                troubledAreasList.innerHTML = '<p class="text-gray-500 text-lg">No specific areas to re-explore. Excellent!</p>';
-                startStudySessionButton.classList.add('hidden'); // Hide button if no troubled areas
-            } else {
-                uniqueTroubledTopics.forEach(topic => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('mb-2');
-                    listItem.textContent = `${topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} (Flagged: ${appState.troubledAreas[topic]} times)`;
-                    troubledAreasList.appendChild(listItem);
-                });
-                startStudySessionButton.classList.remove('hidden'); // Show button if troubled areas exist
-            }
-        }
-
-        /**
-         * Starts a study session based on the most problematic topic.
-         */
-        async function startStudySession() {
-            showScreen(studyModeScreen); // Go to study screen
-
-            // Display loading indicator
-            studyModeContent.innerHTML = `
-                <div class="loading-indicator">
-                    <div class="loading-spinner"></div>
-                    <p>Dora is thinking up a brilliant lesson for you...</p>
-                </div>
-            `;
-            
-            // Find the most problematic topic
-            let mostTroubledTopic = null;
-            let maxCount = 0;
-            for (const topic in appState.troubledAreas) {
-                if (appState.troubledAreas[topic] > maxCount) {
-                    maxCount = appState.troubledAreas[topic];
-                    mostTroubledTopic = topic;
-                }
-            }
-
-            if (!mostTroubledTopic) {
-                studyModeContent.innerHTML = `<p class="text-lg text-gray-700">No troubled areas to study right now. Keep up the great work!</p>`;
-                return;
-            }
-
-            const cleanTopicName = mostTroubledTopic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            const prompt = `Act as Dora the Explorer, a friendly, encouraging, and knowledgeable math tutor. Explain the concept of "${cleanTopicName}" in simple terms suitable for an elementary/middle school student. Provide a clear, step-by-step mini-lesson. Include a simple mathematical example using LaTeX, and conclude with an encouraging remark. Ensure all math is properly formatted with LaTeX using \\( \\) for inline and \\[ \\] for display math. Make it no more than 200 words.`;
-
-            try {
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-                const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will provide this at runtime
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const lessonText = result.candidates[0].content.parts[0].text;
-                    studyModeContent.innerHTML = `<p class="text-lg text-gray-700">${lessonText}</p>`;
-                    typesetIfMathJaxReady([studyModeContent]); // Typeset the new content
-                } else {
-                    studyModeContent.innerHTML = `<p class="text-lg text-red-600">Uh oh! Dora couldn't quite generate that lesson. Please try again later!</p>`;
-                    console.error("Gemini API response structure unexpected:", result);
-                }
-            } catch (error) {
-                studyModeContent.innerHTML = `<p class="text-lg text-red-600">Oh no! There was an error fetching the lesson. Check your internet connection or try again!</p>`;
-                console.error("Error fetching study lesson:", error);
-            }
-        }
-
-
-        // --- Email Export Logic ---
-        /**
-         * Generates and triggers a mailto link with the user's report.
-         */
-        function sendReport() {
-            const userName = "Valued Explorer";
-            let reportBody = `Hello,\n\n`;
-            reportBody += `Here's an update on your progress in Dora's Math Quest: Integer Island Expedition!\n\n`;
-            reportBody += `Total Data Shards: ${appState.points}\n`;
-            reportBody += `Current Adventure Level: ${getLevelName(appState.level)} (Level ${appState.level})\n`;
-            reportBody += `Daily Check-in Streak: ${appState.dailyStreak} 🔥\n\n`;
-
-            reportBody += "--- Mastery Badges Earned ---\n";
-            if (appState.badges.length > 0) {
-                appState.badges.forEach(badge => { 
-                    reportBody += `${badge.emoji} ${badge.name}\n`;
-                });
-            } else {
-                reportBody += "No badges earned yet. Keep adventuring!\n";
-            }
-            reportBody += "\n";
-
-            reportBody += "--- Areas to Re-Explore (Topics Flagged) ---\n";
-            const uniqueTroubledTopics = Object.keys(appState.troubledAreas).filter(topic => appState.troubledAreas[topic] > 0);
-            if (uniqueTroubledTopics.length > 0) {
-                uniqueTroubledTopics.forEach(topic => {
-                    reportBody += `- ${topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} (Flagged ${appState.troubledAreas[topic]} times)\n`;
-                });
-            } else {
-                reportBody += "No specific areas needing re-exploration noted. Excellent work!\n";
-            }
-            reportBody += "\n";
-
-            reportBody += "--- Recent Expedition History ---\n";
-            if (appState.sessionHistory.length > 0) {
-                appState.sessionHistory.forEach(session => {
-                    reportBody += `\nSession Date: ${session.date}\n`;
-                    reportBody += `Type: ${session.type}\n`;
-                    reportBody += `Questions Attempted: ${session.questionsAttempted}\n`;
-                    reportBody += `Correct Answers: ${session.correctAnswers}\n`;
-                    reportBody += `Points Earned: ${session.pointsEarned} Data Shards\n`;
-                    if (session.durationMinutes) {
-                        reportBody += `Duration: ${session.durationMinutes} minutes\n`;
-                    }
-                    if (session.troubledTopics && session.troubledTopics.length > 0) {
-                        reportBody += `Topics Flagged in Session: ${session.troubledTopics.map(t => t.replace(/_/g, ' ')).join(', ')}\n`;
-                    }
-                });
-            } else {
-                reportBody += "No recent quest sessions recorded.\n";
-            }
-            reportBody += "\n\nKeep solving mysteries and exploring with Dora!\n";
-
-            const subject = encodeURIComponent("Dora's Math Quest: Expedition Report");
-            const body = encodeURIComponent(reportBody);
-            const mailtoLink = `mailto:your.email@example.com?subject=${subject}&body=${body}`;
-
-            window.location.href = mailtoLink;
-        }
-
-
-        // --- Event Listeners ---
-        goToProgressButton.addEventListener('click', () => {
-            showScreen(progressScreen);
-        });
-
-        goToTutorialSectionBtn.addEventListener('click', () => {
-            tutorialSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-
-        goToPracticeSectionBtn.addEventListener('click', () => {
-            practiceSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-
-        startStudySessionButton.addEventListener('click', startStudySession); // New listener for study mode
-
-        backToProgressFromStudyButton.addEventListener('click', () => { // New listener
-            showScreen(progressScreen);
-            updateProgressScreen(); // Update progress screen when returning
-        });
-
-        backToLandingButton.addEventListener('click', () => { 
-            showScreen(fullLandingPageContent); 
-        });
-
-        sendReportButton.addEventListener('click', sendReport);
-
-        // --- Initial Load ---
-        window.onload = () => {
-            loadAppState();
-            updatePointsAndLevelDisplay();
-            loadFullWorksheetContent(); 
-
-            // Fallback for MathJax loading failure
-            setTimeout(() => {
-                if (!window.MathJax || !window.MathJax.startup || !window.MathJax.startup.promise) {
-                    console.error("MathJax failed to load after timeout.");
-                    const warning = document.createElement('p');
-                    warning.classList.add('text-red-600', 'text-center', 'mt-4');
-                    warning.textContent = "Unable to load math renderer. Please refresh the page or check your internet connection.";
-                    appContainer.prepend(warning);
-                }
-            }, 5000); // 5-second timeout
         };
 
+        const sendReport = () => {
+            const { points, level, dailyStreak, badges, troubledAreas, sessionHistory, quickChallenges, helpRequests, extraQuestionsAdded } = StateManager.state;
+            let report = `Hello,\n\nHere's your progress in Dora's Math Quest:\n\n`;
+            report += `Total Data Shards: ${points}\n`;
+            report += `Adventure Level: ${getLevelName(level)} (Level ${level})\n`;
+            report += `Daily Streak: ${dailyStreak} 🔥\n`;
+            report += `Extra Questions Added from Hints: ${extraQuestionsAdded}\n\n`;
+            report += '--- Mastery Badges ---\n';
+            report += badges.length ? badges.map(b => `${b.emoji} ${b.name}`).join('\n') : 'No badges yet.\n';
+            report += '\n--- Areas to Re-Explore ---\n';
+            const troubledTopics = Object.keys(troubledAreas).filter(t => troubledAreas[t] > 0);
+            report += troubledTopics.length ? troubledTopics.map(t => `- ${t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} (Flagged ${troubledAreas[t]} times)`).join('\n') : 'No areas noted.\n';
+            report += '\n--- Quick Challenge Stats ---\n';
+            report += `Attempts: ${quickChallenges.attempts}\nCorrect: ${quickChallenges.correct}\nPoints Earned: ${quickChallenges.points}\n`;
+            report += '\n--- Recent Practice Sessions ---\n';
+            report += sessionHistory.length ? sessionHistory.map(s => {
+                let sessionReport = `Date: ${s.date}\nType: ${s.type}\nQuestions: ${s.questionsAttempted}\nCorrect: ${s.correctAnswers}\nPoints: ${s.pointsEarned}\nTroubled Topics: ${s.troubledTopics.join(', ') || 'None'}`;
+                if (s.troubledQuestions && s.troubledQuestions.length) {
+                    sessionReport += `\nQuestions Not Understood: ${s.troubledQuestions.map(qid => {
+                        const q = ContentRenderer.activeQuestions.find(aq => aq.id === qid);
+                        return q ? q.question : qid;
+                    }).join(', ')}`;
+                }
+                return sessionReport;
+            }).join('\n\n') : 'No sessions recorded.\n';
+            report += '\n--- Help Requests ---\n';
+            report += helpRequests.length ? helpRequests.map(h => `Date: ${h.date}\nType: ${h.type}\nContent: ${h.content}`).join('\n\n') : 'No help requests.\n';
+            report += '\nKeep exploring with Dora!\n';
+            window.location.href = `mailto:?subject=${encodeURIComponent("Dora's Math Quest Report")}&body=${encodeURIComponent(report)}`;
+        };
+
+        // Event Delegation
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('[data-nav="tutorial"]')) {
+                document.getElementById('tutorialSection').scrollIntoView({ behavior: 'smooth' });
+            } else if (e.target.matches('[data-nav="practice"]')) {
+                document.getElementById('practiceSection').scrollIntoView({ behavior: 'smooth' });
+            } else if (e.target.matches('[data-nav="help"]')) {
+                UIHandler.showScreen(UIHandler.elements.screens.help);
+                ContentRenderer.renderHelpContent('');
+            } else if (e.target.matches('#goToProgressButton')) {
+                UIHandler.showScreen(UIHandler.elements.screens.progress);
+                UIHandler.updateProgress();
+            } else if (e.target.matches('#startStudySessionButton')) {
+                UIHandler.showScreen(UIHandler.elements.screens.study);
+                ContentRenderer.renderStudySession();
+            } else if (e.target.matches('#backToLandingButton') || e.target.matches('#backToProgressFromStudyButton') || e.target.matches('#backToLandingFromHelpButton')) {
+                UIHandler.showScreen(UIHandler.elements.screens.landing);
+            } else if (e.target.matches('#sendReportButton')) {
+                sendReport();
+            } else if (e.target.matches('.choice-btn')) {
+                const item = e.target.closest('.question-item');
+                const qId = item.dataset.questionId;
+                const question = ContentRenderer.activeQuestions.find(q => q.id === qId);
+                if (question) ContentRenderer.handleAnswer(e, question, item);
+            } else if (e.target.matches('#submitQuickChallenge')) {
+                ContentRenderer.handleQuickChallenge();
+            } else if (e.target.matches('#getHintButton')) {
+                const topic = document.getElementById('helpTopic').value;
+                if (topic) ContentRenderer.renderHelpContent(topic);
+                else UIHandler.showFeedback('Please select a topic!', 'incorrect');
+            } else if (e.target.matches('#askAIButton')) {
+                const question = document.getElementById('helpQuestion').value.trim();
+                if (question) ContentRenderer.renderHelpContent('', question);
+                else UIHandler.showFeedback('Please enter a question!', 'incorrect');
+            }
+        });
+
+        // Keyboard Accessibility
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.target.matches('button') || e.target.matches('#quickChallengeInput'))) {
+                e.target.click();
+            }
+        });
+
+        // Initialize
+        window.addEventListener('load', () => {
+            StateManager.load();
+            StateManager.updateStreak();
+            UIHandler.updateProgress();
+            ContentRenderer.renderTutorial();
+            ContentRenderer.renderQuiz();
+            ContentRenderer.renderQuickChallenge();
+            setTimeout(() => {
+                if (!window.MathJaxReady) {
+                    UIHandler.elements.appContainer.prepend(
+                        Object.assign(document.createElement('p'), {
+                            className: 'text-red-600 text-center mt-4',
+                            textContent: 'Unable to load math renderer. Please refresh.'
+                        })
+                    );
+                }
+            }, 5000);
+        });
     </script>
 </body>
 </html>
