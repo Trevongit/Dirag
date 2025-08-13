@@ -383,7 +383,15 @@
                 if (window.MathJaxReady && typesetQueue.length) {
                     window.MathJax.typesetPromise(typesetQueue)
                         .then(() => typesetQueue = [])
-                        .catch(err => console.error('MathJax error:', err));
+                        .catch(err => {
+                            console.error('MathJax error:', err);
+                            elements.appContainer.prepend(
+                                Object.assign(document.createElement('p'), {
+                                    className: 'text-red-600 text-center mt-4',
+                                    textContent: 'Math rendering failed. Please refresh.'
+                                })
+                            );
+                        });
                 }
             };
 
@@ -563,15 +571,17 @@
                 });
                 UIHandler.typesetQueue.push(section);
                 UIHandler.debounceTypeset();
-                StateManager.state.sessionHistory.push({
-                    date: new Date().toLocaleString(),
-                    type: 'worksheet_practice',
-                    questionsAttempted: 0,
-                    correctAnswers: 0,
-                    pointsEarned: 0,
-                    troubledTopics: [],
-                    troubledQuestions: []
-                });
+                if (!StateManager.state.sessionHistory.length || StateManager.state.sessionHistory[StateManager.state.sessionHistory.length - 1].questionsAttempted > 0) {
+                    StateManager.state.sessionHistory.push({
+                        date: new Date().toLocaleString(),
+                        type: 'worksheet_practice',
+                        questionsAttempted: 0,
+                        correctAnswers: 0,
+                        pointsEarned: 0,
+                        troubledTopics: [],
+                        troubledQuestions: []
+                    });
+                }
                 StateManager.save();
             };
 
@@ -641,16 +651,43 @@
 
             const generateQuickChallenge = () => {
                 const operations = ['+', '-', '\\times', '\\div'];
-                const numbers = [Math.floor(Math.random() * 10) + 1, Math.floor(Math.random() * 10) + 1, Math.floor(Math.random() * 10) + 1];
-                const op1 = operations[Math.floor(Math.random() * 2)]; // + or -
-                const op2 = operations[Math.floor(Math.random() * 2) + 2]; // × or ÷
-                const question = `${numbers[0]}${op1}(${numbers[1]}${op2}${numbers[2]})`;
-                let answer;
-                if (op2 === '\\times') answer = numbers[1] * numbers[2];
-                else answer = numbers[1] / numbers[2];
-                if (op1 === '+') answer = numbers[0] + answer;
-                else answer = numbers[0] - answer;
-                return { question: `\\(${question}\\)` , answer: String(Math.round(answer * 100) / 100) };
+                const structures = [
+                    () => {
+                        const n1 = Math.floor(Math.random() * 14) + 2; // 2–15
+                        const n2 = Math.floor(Math.random() * 8) + 2; // 2–9
+                        const n3 = Math.floor(Math.random() * 6) + 2; // 2–7
+                        const op1 = operations[Math.floor(Math.random() * 2)]; // + or -
+                        const op2 = operations[Math.floor(Math.random() * 2) + 2]; // × or ÷
+                        const question = `${n1}${op1}(${n2}${op2}${n3})`;
+                        let inner;
+                        if (op2 === '\\times') inner = n2 * n3;
+                        else inner = n2 / n3;
+                        const answer = op1 === '+' ? n1 + inner : n1 - inner;
+                        return { question: `\\(${question}\\)`, answer: Number(answer.toFixed(1)) };
+                    },
+                    () => {
+                        const n1 = Math.floor(Math.random() * 10) + 2; // 2–11
+                        const n2 = Math.floor(Math.random() * 4) + 2; // 2–5
+                        const op1 = operations[Math.floor(Math.random() * 2)]; // + or -
+                        const question = `${n1}${op1}(-${n2})^2`;
+                        const inner = Math.pow(-n2, 2);
+                        const answer = op1 === '+' ? n1 + inner : n1 - inner;
+                        return { question: `\\(${question}\\)`, answer: Number(answer.toFixed(1)) };
+                    },
+                    () => {
+                        const n1 = Math.floor(Math.random() * 12) + 4; // 4–15
+                        const n2 = Math.floor(Math.random() * 6) + 2; // 2–7
+                        const n3 = Math.floor(Math.random() * 4) + 2; // 2–5
+                        const op2 = operations[Math.floor(Math.random() * 2) + 2]; // × or ÷
+                        const question = `${n1}\\div(${n2}${op2}${n3})`;
+                        let inner;
+                        if (op2 === '\\times') inner = n2 * n3;
+                        else inner = n2 / n3;
+                        const answer = n1 / inner;
+                        return { question: `\\(${question}\\)`, answer: Number(answer.toFixed(1)) };
+                    }
+                ];
+                return structures[Math.floor(Math.random() * structures.length)]();
             };
 
             const renderQuickChallenge = () => {
@@ -666,6 +703,10 @@
             const handleQuickChallenge = () => {
                 const input = UIHandler.elements.quickChallenge.input.value.trim();
                 const correctAnswer = UIHandler.elements.quickChallenge.question.dataset.answer;
+                if (!input) {
+                    UIHandler.showFeedback('Please enter an answer!', 'incorrect');
+                    return;
+                }
                 StateManager.state.quickChallenges.attempts++;
                 if (input === correctAnswer) {
                     StateManager.state.points += 10;
@@ -820,8 +861,12 @@
 
         // Keyboard Accessibility
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && (e.target.matches('button') || e.target.matches('#quickChallengeInput'))) {
-                e.target.click();
+            if (e.key === 'Enter') {
+                if (e.target.matches('#quickChallengeInput')) {
+                    ContentRenderer.handleQuickChallenge();
+                } else if (e.target.matches('button')) {
+                    e.target.click();
+                }
             }
         });
 
