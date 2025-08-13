@@ -292,7 +292,8 @@
                 quickChallenges: { attempts: 0, correct: 0, points: 0 },
                 helpRequests: [],
                 extraQuestionsAdded: 0,
-                maxExtraQuestions: 5
+                maxExtraQuestions: 5,
+                dontUnderstandQuestions: [] // Track "Don't Understand" clicks
             };
 
             const save = () => localStorage.setItem('doraMathQuest', JSON.stringify(state));
@@ -306,6 +307,7 @@
                     state.quickChallenges = state.quickChallenges || { attempts: 0, correct: 0, points: 0 };
                     state.helpRequests = state.helpRequests || [];
                     state.extraQuestionsAdded = state.extraQuestionsAdded || 0;
+                    state.dontUnderstandQuestions = state.dontUnderstandQuestions || [];
                 } catch (e) {
                     console.error('Error loading state:', e);
                 }
@@ -493,26 +495,26 @@
             ];
 
             const quizQuestions = [
-                { id: 'q1', topic: 'bidmas_brackets', question: '5 + (3 \\times 2)', answer: '11', choices: ['11', '15', '8', '20'] },
-                { id: 'q2', topic: 'bidmas_brackets', question: '10 - (4 + 3)', answer: '3', choices: ['3', '7', '10', '1'] },
-                { id: 'q3', topic: 'bidmas_brackets', question: '(6 + 2) \\times 3', answer: '24', choices: ['24', '18', '21', '12'] },
-                { id: 'q4', topic: 'bidmas_indices', question: '2 + (-2)^2', answer: '6', choices: ['6', '0', '4', '8'] },
-                { id: 'q5', topic: 'bidmas_indices', question: '(-3)^2 - 5', answer: '4', choices: ['4', '-14', '9', '-9'] },
-                { id: 'q6', topic: 'bidmas_indices', question: '10 \\div 2 + (-2)^3', answer: '-3', choices: ['-3', '5', '13', '-8'] },
-                { id: 'q7', topic: 'bidmas_division_multiplication', question: '12 \\div 4 \\times 2', answer: '6', choices: ['6', '1.5', '8', '3'] },
-                { id: 'q8', topic: 'bidmas_division_multiplication', question: '3 \\times 5 \\div 3', answer: '5', choices: ['5', '15', '1', '9'] },
-                { id: 'q9', topic: 'bidmas_division_multiplication', question: '20 \\div 5 \\times (-2)', answer: '-8', choices: ['-8', '8', '-4', '2'] },
-                { id: 'q10', topic: 'bidmas_addition_subtraction', question: '7 - 4 + 2', answer: '5', choices: ['5', '9', '3', '1'] },
-                { id: 'q11', topic: 'bidmas_addition_subtraction', question: '10 + 3 - 8', answer: '5', choices: ['5', '21', '1', '11'] },
-                { id: 'q12', topic: 'bidmas_addition_subtraction', question: '-2 + 6 - 3', answer: '1', choices: ['1', '-1', '7', '5'] },
-                { id: 'q13', topic: 'bidmas_brackets', question: '4 \\times (5 - 2)', answer: '12', choices: ['12', '18', '7', '20'] },
-                { id: 'q14', topic: 'bidmas_indices', question: '3^2 - 4', answer: '5', choices: ['5', '13', '1', '9'] },
-                { id: 'q15', topic: 'bidmas_division_multiplication', question: '15 \\div 3 \\times 2', answer: '10', choices: ['10', '2', '15', '6'] }
+                { id: 'q1', topic: 'bidmas_brackets', question: '6 + (4 - 1)', answer: '9', choices: ['9', '7', '10', '5'] },
+                { id: 'q2', topic: 'bidmas_brackets', question: '(7 + 2) \\times 2', answer: '18', choices: ['18', '11', '20', '9'] },
+                { id: 'q3', topic: 'bidmas_brackets', question: '12 - (5 + 3)', answer: '4', choices: ['4', '8', '10', '2'] },
+                { id: 'q4', topic: 'bidmas_brackets', question: '3 \\times (6 - 4)', answer: '6', choices: ['6', '12', '9', '15'] },
+                { id: 'q5', topic: 'bidmas_indices', question: '(-2)^2 + 7', answer: '11', choices: ['11', '4', '9', '-3'] },
+                { id: 'q6', topic: 'bidmas_indices', question: '3^2 - 2', answer: '7', choices: ['7', '9', '1', '5'] },
+                { id: 'q7', topic: 'bidmas_indices', question: '10 \\div 2 + (-3)^2', answer: '14', choices: ['14', '5', '11', '-4'] },
+                { id: 'q8', topic: 'bidmas_indices', question: '(-4)^2 - 6', answer: '10', choices: ['10', '16', '-10', '4'] },
+                { id: 'q9', topic: 'bidmas_division_multiplication', question: '15 \\div 3 \\times 2', answer: '10', choices: ['10', '2', '15', '6'] },
+                { id: 'q10', topic: 'bidmas_division_multiplication', question: '6 \\times 4 \\div 2', answer: '12', choices: ['12', '24', '3', '8'] },
+                { id: 'q11', topic: 'bidmas_division_multiplication', question: '20 \\div 4 \\times (-3)', answer: '-15', choices: ['-15', '15', '-5', '3'] },
+                { id: 'q12', topic: 'bidmas_division_multiplication', question: '9 \\div 3 \\times 5', answer: '15', choices: ['15', '3', '45', '9'] },
+                { id: 'q13', topic: 'bidmas_addition_subtraction', question: '8 - 3 + 4', answer: '9', choices: ['9', '5', '7', '1'] },
+                { id: 'q14', topic: 'bidmas_addition_subtraction', question: '10 + 2 - 7', answer: '5', choices: ['5', '19', '3', '9'] },
+                { id: 'q15', topic: 'bidmas_addition_subtraction', question: '-3 + 8 - 2', answer: '3', choices: ['3', '-7', '5', '1'] }
             ];
 
             const extraQuestionsPool = [
-                { id: 'e1', topic: 'bidmas_brackets', question: '(7 + 3) \\times 2', answer: '20', choices: ['20', '17', '12', '10'] },
-                { id: 'e2', topic: 'bidmas_brackets', question: '8 - (2 + 1)', answer: '5', choices: ['5', '7', '3', '9'] },
+                { id: 'e1', topic: 'bidmas_brackets', question: '(8 + 2) \\times 3', answer: '30', choices: ['30', '18', '12', '10'] },
+                { id: 'e2', topic: 'bidmas_brackets', question: '9 - (3 + 2)', answer: '4', choices: ['4', '7', '3', '9'] },
                 { id: 'e3', topic: 'bidmas_indices', question: '(-2)^2 + 5', answer: '9', choices: ['9', '4', '-4', '1'] },
                 { id: 'e4', topic: 'bidmas_indices', question: '10 - 3^2', answer: '1', choices: ['1', '7', '9', '-1'] },
                 { id: 'e5', topic: 'bidmas_division_multiplication', question: '6 \\times 2 \\div 3', answer: '4', choices: ['4', '12', '1', '6'] },
@@ -598,6 +600,7 @@
                     StateManager.state.troubledAreas[question.topic] = (StateManager.state.troubledAreas[question.topic] || 0) + 1;
                     if (!session.troubledTopics.includes(question.topic)) session.troubledTopics.push(question.topic);
                     if (!session.troubledQuestions.includes(question.id)) session.troubledQuestions.push(question.id);
+                    if (!StateManager.state.dontUnderstandQuestions.includes(question.id)) StateManager.state.dontUnderstandQuestions.push(question.id);
                 } else {
                     const isCorrect = choice === question.answer;
                     UIHandler.showFeedback(isCorrect ? "Correct! 🎉" : "Incorrect. 🤔", isCorrect ? "correct" : "incorrect");
@@ -666,7 +669,6 @@
                         else inner = n2 / n3;
                         let answer = op1 === '+' ? n1 + inner : n1 - inner;
                         answer = op3 === '+' ? answer + n4 : answer - n4;
-                        // Avoid simplistic inner operations (e.g., 2×4=8)
                         if (inner < 10 && op2 === '\\times') return generateQuickChallenge();
                         return { question: `\\(${question}\\)`, answer: Number(answer.toFixed(1)) };
                     },
@@ -691,7 +693,6 @@
                         let inner;
                         if (op2 === '\\times') inner = n2 * n3;
                         else inner = n2 / n3;
-                        // Ensure integer division result
                         if (!Number.isInteger(n1 / inner)) return generateQuickChallenge();
                         const answer = n1 / inner;
                         return { question: `\\(${question}\\)`, answer: Number(answer.toFixed(1)) };
@@ -706,13 +707,11 @@
                         let inner;
                         if (op1 === '\\times') inner = n1 * n2;
                         else inner = n1 / n2;
-                        // Ensure integer division result
                         if (op1 === '\\div' && !Number.isInteger(inner)) return generateQuickChallenge();
                         const answer = op2 === '+' ? inner + n3 : inner - n3;
                         return { question: `\\(${question}\\)`, answer: Number(answer.toFixed(1)) };
                     }
                 ];
-                // Weight structures to favor more complex ones
                 const weights = [0.2, 0.3, 0.3, 0.2];
                 let cumulative = 0;
                 const rand = Math.random();
@@ -767,7 +766,7 @@
                 }
                 const availableQuestions = extraQuestionsPool.filter(q => q.topic === topic && !activeQuestions.some(aq => aq.id === q.id || aq.id.includes(q.id)));
                 if (!availableQuestions.length) {
-                    UIHandler.showFeedback('No more extra questions for this topic!', 'incorrect');
+                    UIHandler.showFeedback('No more extra questions for this topic! Try another topic or review tutorials.', 'incorrect');
                     return;
                 }
                 const newQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
@@ -775,7 +774,7 @@
                 StateManager.state.extraQuestionsAdded++;
                 StateManager.save();
                 renderQuiz();
-                UIHandler.showFeedback('New challenge added to Practice section!', 'incorrect');
+                UIHandler.showFeedback('New challenge added to Practice section for extra practice!', 'correct');
             };
 
             const renderHelpContent = (topic, question = '') => {
@@ -825,12 +824,14 @@
         };
 
         const sendReport = () => {
-            const { points, level, dailyStreak, badges, troubledAreas, sessionHistory, quickChallenges, helpRequests, extraQuestionsAdded } = StateManager.state;
+            const { points, level, dailyStreak, badges, troubledAreas, sessionHistory, quickChallenges, helpRequests, extraQuestionsAdded, dontUnderstandQuestions } = StateManager.state;
             let report = `Hello,\n\nHere's your progress in Dora's Math Quest:\n\n`;
             report += `Total Data Shards: ${points}\n`;
             report += `Adventure Level: ${getLevelName(level)} (Level ${level})\n`;
             report += `Daily Streak: ${dailyStreak} 🔥\n`;
-            report += `Extra Questions Added from Hints: ${extraQuestionsAdded}\n\n`;
+            report += `Extra Questions Added from Hints: ${extraQuestionsAdded}\n`;
+            report += `Total Hint Requests: ${helpRequests.filter(h => h.type === 'hint').length}\n`;
+            report += `Total "Don't Understand" Clicks: ${dontUnderstandQuestions.length}\n\n`;
             report += '--- Mastery Badges ---\n';
             report += badges.length ? badges.map(b => `${b.emoji} ${b.name}`).join('\n') : 'No badges yet.\n';
             report += '\n--- Areas to Re-Explore ---\n';
@@ -840,11 +841,11 @@
             report += `Attempts: ${quickChallenges.attempts}\nCorrect: ${quickChallenges.correct}\nPoints Earned: ${quickChallenges.points}\n`;
             report += '\n--- Recent Practice Sessions ---\n';
             report += sessionHistory.length ? sessionHistory.map(s => {
-                let sessionReport = `Date: ${s.date}\nType: ${s.type}\nQuestions: ${s.questionsAttempted}\nCorrect: ${s.correctAnswers}\nPoints: ${s.pointsEarned}\nTroubled Topics: ${s.troubledTopics.join(', ') || 'None'}`;
+                let sessionReport = `Date: ${s.date}\nType: ${s.type}\nQuestions Attempted: ${s.questionsAttempted}\nCorrect: ${s.correctAnswers}\nPoints: ${s.pointsEarned}\nTroubled Topics: ${s.troubledTopics.join(', ') || 'None'}`;
                 if (s.troubledQuestions && s.troubledQuestions.length) {
-                    sessionReport += `\nQuestions Not Understood: ${s.troubledQuestions.map(qid => {
+                    sessionReport += `\nQuestions Not Understood (Incorrect or Skipped): ${s.troubledQuestions.map(qid => {
                         const q = ContentRenderer.activeQuestions.find(aq => aq.id === qid);
-                        return q ? `\\(${q.question}\\)` : qid;
+                        return q ? q.question : qid;
                     }).join(', ')}`;
                 }
                 return sessionReport;
