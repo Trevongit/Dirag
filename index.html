@@ -460,7 +460,7 @@
                     title: 'DM is for Division & Multiplication! (\\(\\div \\times\\))',
                     steps: [
                         { text: 'These two are a team! Do them from left to right as they appear.', emoji: '➡️' },
-                        { text: 'Example: In \\(72\\div8\\times-3\\), we do \\(72\\div8\\) first, which is \\(9\\). Then \\(9\\times-3\\).', example: '72\\div8\\times-3 \\rightarrow 9\\times-3' }
+                        { text: 'Example: In \\(12\\div4\\times2\\), we do \\(12\\div4\\) first, which is \\(3\\). Then \\(3\\times2\\).', example: '12\\div4\\times2 \\rightarrow 3\\times2' }
                     ]
                 },
                 {
@@ -570,8 +570,7 @@
                     correctAnswers: 0,
                     pointsEarned: 0,
                     troubledTopics: [],
-                    troubledQuestions: [],
-                    durationMinutes: 0
+                    troubledQuestions: []
                 });
                 StateManager.save();
             };
@@ -692,7 +691,7 @@
                     UIHandler.showFeedback('Max extra challenges added! Review tutorials for more help!', 'incorrect');
                     return;
                 }
-                const availableQuestions = extraQuestionsPool.filter(q => q.topic === topic && !activeQuestions.some(aq => aq.id === q.id));
+                const availableQuestions = extraQuestionsPool.filter(q => q.topic === topic && !activeQuestions.some(aq => aq.id === q.id || aq.id.includes(q.id)));
                 if (!availableQuestions.length) {
                     UIHandler.showFeedback('No more extra questions for this topic!', 'incorrect');
                     return;
@@ -771,7 +770,7 @@
                 if (s.troubledQuestions && s.troubledQuestions.length) {
                     sessionReport += `\nQuestions Not Understood: ${s.troubledQuestions.map(qid => {
                         const q = ContentRenderer.activeQuestions.find(aq => aq.id === qid);
-                        return q ? q.question : qid;
+                        return q ? `\\(${q.question}\\)` : qid;
                     }).join(', ')}`;
                 }
                 return sessionReport;
