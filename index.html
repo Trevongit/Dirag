@@ -104,8 +104,11 @@
         <p>Adventure Level: <span id="adventure-level">Beginner Explorer</span></p>
         <p>Daily Check-in Streak: 0 🔥</p>
         <p>Mastery Badges: 🏆</p>
-        <p>Areas to Re-Explore: <span id="areas-to-re-explore">None</span> 🚧</p>
-        <p><strong>Full Report Content (for Email):</strong></p>
+        <p>Areas to Re-Explore (Needed Hint/IDK): <span id="summary-hints-idk">None</span> 🚧</p>
+        <p>Areas to Re-Explore (Incorrect Attempts): <span id="summary-incorrect">None</span> 🚫</p>
+        <p><strong>Full Report Content (for Email):</strong>
+            <button onclick="shareReport()" style="margin-left: 10px; background-color: #add8e6; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer;">Submit Report via Email 📧</button>
+        </p>
         <pre id="full-report-display">Loading report...</pre>
         <button onclick="resetProgress()">Reset Progress</button>
         <a href="#basics">Back to Lessons</a>
@@ -552,8 +555,7 @@
             // No need to reset addedEquationCount explicitly as dynamicEquationsPool is recreated
             document.getElementById('progress-shards').textContent = shards;
             document.getElementById('adventure-level').textContent = levels[0];
-            document.getElementById('areas-to-re-explore').textContent = 'None'; 
-
+            
             document.querySelectorAll('.feedback').forEach(f => {
                 f.style.display = 'none';
             });
@@ -590,24 +592,18 @@
 
         // Update the displayed Areas to Re-Explore and the full report content in real-time
         function updateAreasToReExploreDisplay() {
-            const struggledList = struggledQuestions.size > 0 ? Array.from(struggledQuestions).join('; ') : 'None';
-            const incorrectCount = incorrectlyAnsweredQuestions.size;
-            let combinedReportText = '';
-
-            if (struggledList !== 'None') {
-                combinedReportText += `Needed Hints/IDK: ${struggledList}`;
-            }
-            if (incorrectCount > 0) {
-                if (combinedReportText !== '') {
-                    combinedReportText += '; ';
-                }
-                combinedReportText += `Incorrect Attempts: ${incorrectCount} questions.`;
+            const struggledHints = struggledQuestions.size > 0 ? Array.from(struggledQuestions).join('; ') : 'None';
+            let incorrectAttemptsSummary = '';
+            if (incorrectlyAnsweredQuestions.size > 0) {
+                const incorrectCount = incorrectlyAnsweredQuestions.size;
+                incorrectAttemptsSummary = `${incorrectCount} questions`;
+            } else {
+                incorrectAttemptsSummary = 'None';
             }
 
-            if (combinedReportText === '') {
-                combinedReportText = 'None';
-            }
-            document.getElementById('areas-to-re-explore').textContent = combinedReportText;
+            // Update the summary lines
+            document.getElementById('summary-hints-idk').textContent = struggledHints;
+            document.getElementById('summary-incorrect').textContent = incorrectAttemptsSummary;
 
             // Update the full report display area
             fullReportDisplay.textContent = generateReportContent();
