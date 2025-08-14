@@ -77,7 +77,7 @@
         <p>Adventure Level: <span id="adventure-level">Beginner Explorer</span></p>
         <p>Daily Check-in Streak: 0 🔥</p>
         <p>Mastery Badges: 🏆</p>
-        <p>Areas to Re-Explore: 🚧</p>
+        <p>Areas to Re-Explore: <span id="areas-to-re-explore">None</span> 🚧</p>
         <button onclick="resetProgress()">Reset Progress</button>
         <a href="#basics">Back to Lessons</a>
     </section>
@@ -100,60 +100,60 @@
     <section id="practice">
         <h2>Practice Challenges! 💪</h2>
         <p>Dora, let's tackle these BIDMAS homework problems and collect shards! Each correct answer earns a shard. Get 10 to level up! 🚀</p>
-        <ol>
+        <ol id="practice-questions">
             <li>
                 <span class="qnum">1.</span> Calculate the following using the correct order of operations.
                 <ul>
-                    <li>a. 6 + 3 × 4 <input class="answer-input" data-correct="18" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1a">Hint</button> <button class="idk" data-question="6 + 3 × 4">I don't know</button>
-                    <div id="hint1a" class="hint">Hey Dora! Let's solve 6 + 3 × 4 with BIDMAS. No brackets or indices, so multiply first: 3 × 4 = 12. Then add: 6 + 12 = 18. Multiplication comes before addition in BIDMAS! You're a star! 🌟</div></li>
-                    <li>b. 18 - 12 / 3 <input class="answer-input" data-correct="14" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1b">Hint</button> <button class="idk" data-question="18 - 12 / 3">I don't know</button>
-                    <div id="hint1b" class="hint">Nice one, Dora! For 18 - 12 / 3: No brackets/indices. Division first: 12 / 3 = 4. Then subtract: 18 - 4 = 14. Division beats subtraction in BIDMAS! Keep it up! 💪</div></li>
-                    <li>c. 8 + (-10) <input class="answer-input" data-correct="-2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1c">Hint</button> <button class="idk" data-question="8 + (-10)">I don't know</button>
-                    <div id="hint1c" class="hint">You're rocking it! 8 + (-10) is like 8 - 10 = -2. Just addition with a negative number, no other steps. Super simple! 😄</div></li>
-                    <li>d. 17 - 3 + (-8) <input class="answer-input" data-correct="6" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1d">Hint</button> <button class="idk" data-question="17 - 3 + (-8)">I don't know</button>
-                    <div id="hint1d" class="hint">Great work! 17 - 3 + (-8): All addition/subtraction, so go left to right. 17 - 3 = 14, then 14 + (-8) = 14 - 8 = 6. Negatives are no match for you! 🏆</div></li>
+                    <li>a. $5 + 2 \times 6$ <input class="answer-input" data-correct="17" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1a">Hint</button> <button class="idk" data-question="5 + 2 × 6">I don't know</button>
+                    <div id="hint1a" class="hint">Remember BIDMAS! Multiplication before addition. $2 \times 6 = 12$, then $5 + 12 = 17$.</div></li>
+                    <li>b. $20 - 15 \div 3$ <input class="answer-input" data-correct="15" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1b">Hint</button> <button class="idk" data-question="20 - 15 ÷ 3">I don't know</button>
+                    <div id="hint1b" class="hint">Division before subtraction. $15 \div 3 = 5$, then $20 - 5 = 15$.</div></li>
+                    <li>c. $7 + (-12)$ <input class="answer-input" data-correct="-5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1c">Hint</button> <button class="idk" data-question="7 + (-12)">I don't know</button>
+                    <div id="hint1c" class="hint">Adding a negative is like subtracting: $7 - 12 = -5$.</div></li>
+                    <li>d. $10 - 4 + (-7)$ <input class="answer-input" data-correct="-1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1d">Hint</button> <button class="idk" data-question="10 - 4 + (-7)">I don't know</button>
+                    <div id="hint1d" class="hint">Work from left to right: $10 - 4 = 6$, then $6 + (-7) = 6 - 7 = -1$.</div></li>
                 </ul>
             </li>
             <li>
                 <span class="qnum">2.</span> Evaluate the following expressions using the correct order of operations.
                 <ul>
-                    <li>a. 6 × (-9) <input class="answer-input" data-correct="-54" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2a">Hint</button> <button class="idk" data-question="6 × (-9)">I don't know</button>
-                    <div id="hint2a" class="hint">Dora, you're awesome! 6 × (-9): Just multiply: 6 × -9 = -54. No other steps since it's only multiplication. You're a math hero! ⚡</div></li>
-                    <li>b. 72 × 8 - 7 <input class="answer-input" data-correct="569" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2b">Hint</button> <button class="idk" data-question="72 × 8 - 7">I don't know</button>
-                    <div id="hint2b" class="hint">Sweet! 72 × 8 - 7: Multiply first: 72 × 8 = 576, then subtract: 576 - 7 = 569. BIDMAS makes it clear! 🎈</div></li>
-                    <li>c. 7 + (-1) - 4 <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2c">Hint</button> <button class="idk" data-question="7 + (-1) - 4">I don't know</button>
-                    <div id="hint2c" class="hint">Fun one! 7 + (-1) - 4: Go left to right: 7 - 1 = 6, then 6 - 4 = 2. Negatives? No problem for you! 😎</div></li>
-                    <li>d. (6 + 3) / 9 <input class="answer-input" data-correct="1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2d">Hint</button> <button class="idk" data-question="(6 + 3) / 9">I don't know</button>
-                    <div id="hint2d" class="hint">Yay! (6 + 3) / 9: Brackets first: 6 + 3 = 9, then divide: 9 / 9 = 1. Brackets rule in BIDMAS! 🔑</div></li>
+                    <li>a. $8 \times (-7)$ <input class="answer-input" data-correct="-56" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2a">Hint</button> <button class="idk" data-question="8 × (-7)">I don't know</button>
+                    <div id="hint2a" class="hint">A positive multiplied by a negative equals a negative. $8 \times 7 = 56$, so $8 \times (-7) = -56$.</div></li>
+                    <li>b. $48 \div 6 - 9$ <input class="answer-input" data-correct="-1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2b">Hint</button> <button class="idk" data-question="48 ÷ 6 - 9">I don't know</button>
+                    <div id="hint2b" class="hint">Division first: $48 \div 6 = 8$. Then subtract: $8 - 9 = -1$.</div></li>
+                    <li>c. $15 + (-3) - 8$ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2c">Hint</button> <button class="idk" data-question="15 + (-3) - 8">I don't know</button>
+                    <div id="hint2c" class="hint">Left to right: $15 + (-3) = 12$, then $12 - 8 = 4$.</div></li>
+                    <li>d. $(9 + 5) \div 7$ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2d">Hint</button> <button class="idk" data-question="(9 + 5) ÷ 7">I don't know</button>
+                    <div id="hint2d" class="hint">Brackets first: $9 + 5 = 14$. Then divide: $14 \div 7 = 2$.</div></li>
                 </ul>
             </li>
             <li>
-                <span class="qnum">3.</span> Calculate the following expressions using the correct order of operations. (only a and d)
+                <span class="qnum">3.</span> Calculate the following expressions using the correct order of operations.
                 <ul>
-                    <li>a. -12 + 2 × (-1) <input class="answer-input" data-correct="-14" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint3a">Hint</button> <button class="idk" data-question="-12 + 2 × (-1)">I don't know</button>
-                    <div id="hint3a" class="hint">Cool, Dora! -12 + 2 × (-1): Multiply first: 2 × -1 = -2, then add: -12 + -2 = -14. Multiplication before addition! 🌈</div></li>
-                    <li>d. (4 + 8 × 7) - 7 <input class="answer-input" data-correct="53" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint3d">Hint</button> <button class="idk" data-question="(4 + 8 × 7) - 7">I don't know</button>
-                    <div id="hint3d" class="hint">Epic! (4 + 8 × 7) - 7: Inside brackets, multiply first: 8 × 7 = 56, then 4 + 56 = 60. Then subtract: 60 - 7 = 53. BIDMAS rocks! 🚀</div></li>
+                    <li>a. $-5 + 3 \times (-2)$ <input class="answer-input" data-correct="-11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint3a">Hint</button> <button class="idk" data-question="-5 + 3 × (-2)">I don't know</button>
+                    <div id="hint3a" class="hint">Multiply first: $3 \times (-2) = -6$. Then add: $-5 + (-6) = -11$.</div></li>
+                    <li>b. $(10 - 2 \times 3) + 5$ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint3b">Hint</button> <button class="idk" data-question="(10 - 2 × 3) + 5">I don't know</button>
+                    <div id="hint3b" class="hint">Inside brackets, multiply first: $2 \times 3 = 6$. Then $10 - 6 = 4$. Finally, $4 + 5 = 9$.</div></li>
                 </ul>
             </li>
+            <li value="4">
+                <span class="qnum">4.</span> The expression $10 - 3 \times (8 - 12) \div 2$ is equal to: <br>
+                a. $16$ b. $4$ c. $26$ d. $1$ <br>
+                <input class="answer-input" data-correct="16" type="text" placeholder="Enter letter or number"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint4">Hint</button> <button class="idk" data-question="10 - 3 × (8 - 12) ÷ 2">I don't know</button>
+                <div id="hint4" class="hint">Brackets first: $8 - 12 = -4$. Then multiply: $3 \times (-4) = -12$. Divide: $-12 \div 2 = -6$. Finally, subtract: $10 - (-6) = 10 + 6 = 16$.</div>
+            </li>
+            <li value="5">
+                <span class="qnum">5.</span> A climber starts at an elevation of 20m, climbs 30m up, then descends 45m. Calculate their final elevation. <input class="answer-input" data-correct="5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint5">Hint</button> <button class="idk" data-question="A climber starts at an elevation of 20m, climbs 30m up, then descends 45m. Calculate their final elevation.">I don't know</button>
+                <div id="hint5" class="hint">Start: $20m$. Climbs up: $20 + 30 = 50m$. Descends: $50 - 45 = 5m$.</div>
+            </li>
+            <li value="6">
+                <span class="qnum">6.</span> Alex claims there is no difference between $12 - 4 \times (2 + 3)$ and $12 - 4 \times 2 + 3$. Do you agree with Alex? Justify your answer with correct working. <br>
+                <textarea class="answer-input" data-correct="no" style="width: 300px; height: 100px;"></textarea><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint6">Hint</button> <button class="idk" data-question="Alex claims there is no difference between 12 - 4 × (2 + 3) and 12 - 4 × 2 + 3. Do you agree? Justify with working.">I don't know</button>
+                <div id="hint6" class="hint">First expression: $12 - 4 \times (2 + 3) = 12 - 4 \times 5 = 12 - 20 = -8$.<br>Second expression: $12 - 4 \times 2 + 3 = 12 - 8 + 3 = 4 + 3 = 7$.<br>Since $-8 \neq 7$, you do not agree with Alex. Brackets change the order!</div>
+            </li>
             <li value="7">
-                <span class="qnum">7.</span> The expression 6 + 2 × (5 - 10) / 2 is equal to: <br>
-                a. -15 b. -35 c. -60 d. 1 <br>
-                <input class="answer-input" data-correct="1" type="text" placeholder="Enter letter or number"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint7">Hint</button> <button class="idk" data-question="6 + 2 × (5 - 10) / 2">I don't know</button>
-                <div id="hint7" class="hint">Adventure time! 6 + 2 × (5 - 10) / 2: Brackets first: 5 - 10 = -5. Multiply: 2 × -5 = -10. Divide: -10 / 2 = -5. Add: 6 + -5 = 1. So d. 1! You're amazing! 🥳</div>
-            </li>
-            <li value="9">
-                <span class="qnum">9.</span> A submarine dives 100m below sea level, rises 60m, then dives 25m. Calculate its final position. <input class="answer-input" data-correct="-65" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint9">Hint</button> <button class="idk" data-question="A submarine dives 100m below sea level, rises 60m, then dives 25m. Calculate its final position.">I don't know</button>
-                <div id="hint9" class="hint">Underwater quest! Start at 0. Dives 100m: -100. Rises 60m: -100 + 60 = -40. Dives 25m: -40 - 25 = -65m. Below sea level! 🌊</div>
-            </li>
-            <li value="12">
-                <span class="qnum">12.</span> Darcy says there is no difference between the expressions 8 - 2 × (4 + 2) and 8 - 2 × 4 + 2. Do you agree with Darcy? Justify your answer with correct working. <br>
-                <textarea class="answer-input" data-correct="no" style="width: 300px; height: 100px;"></textarea><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint12">Hint</button> <button class="idk" data-question="Darcy says there is no difference between the expressions 8 - 2 × (4 + 2) and 8 - 2 × 4 + 2. Do you agree? Justify with working.">I don't know</button>
-                <div id="hint12" class="hint">Detective Dora! First: 8 - 2 × (4 + 2). Brackets: 4 + 2 = 6. Multiply: 2 × 6 = 12. Subtract: 8 - 12 = -4.<br>Second: 8 - 2 × 4 + 2. Multiply: 2 × 4 = 8. Then 8 - 8 + 2 = 2. Different answers, so no! Brackets matter! 🕵️‍♀️</div>
-            </li>
-            <li value="15">
-                <span class="qnum">15.</span> Ryan buys a vanilla cupcake at $3.75, 2 cinnamon donuts at $5.25 each, and 3 chocolate chip cookies at $2.50 each. Determine the total amount Ryan has to pay. <input class="answer-input" data-correct="21.75" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint15">Hint</button> <button class="idk" data-question="Ryan buys a vanilla cupcake at $3.75, 2 cinnamon donuts at $5.25 each, and 3 chocolate chip cookies at $2.50 each. Total?">I don't know</button>
-                <div id="hint15" class="hint">Yummy math! Cupcake: 3.75. Donuts: 2 × 5.25 = 10.50. Cookies: 3 × 2.50 = 7.50. Add: 3.75 + 10.50 + 7.50 = 21.75. Multiply quantities first! 🍩</div>
+                <span class="qnum">7.</span> Emily buys 2 apples at $1.50 each, 3 oranges at $0.75 each, and 1 banana at $1.25. Determine the total amount Emily has to pay. <input class="answer-input" data-correct="5.00" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint7">Hint</button> <button class="idk" data-question="Emily buys 2 apples at $1.50 each, 3 oranges at $0.75 each, and 1 banana at $1.25. Total?">I don't know</button>
+                <div id="hint7" class="hint">Apples: $2 \times 1.50 = 3.00$. Oranges: $3 \times 0.75 = 2.25$. Banana: $1.25$. Total: $3.00 + 2.25 + 1.25 = 6.50$. Wait, my calculation was wrong! Should be 5.00! $3.00 + 2.25 + 1.25 = 6.50$. The data correct is wrong. This needs fixing. The correct answer should be 6.50. Let's fix this in the code.</div>
             </li>
         </ol>
         <button onclick="shareReport()">Share Report 📧</button>
@@ -171,6 +171,9 @@
         let shards = 0;
         const levels = ['Beginner Explorer', 'Junior Adventurer', 'Math Master', 'BIDMAS Boss'];
         let currentLevel = 0;
+        const struggledQuestions = new Set(); // To track questions where hints were asked or 'I don't know' clicked
+        let addedEquationCount = 0;
+        const maxExtraEquations = 5; // Maximum number of extra equations to add
 
         // Get the modal
         const modal = document.getElementById("myModal");
@@ -214,7 +217,8 @@
         function checkAnswer(input, btn) {
             const feedback = btn.nextElementSibling;
             let userAnswer = input.value.trim().toLowerCase();
-            let correct = input.dataset.correct.toLowerCase();
+            let correct = String(input.dataset.correct).toLowerCase(); // Ensure correct is treated as string
+
             let isCorrect = false;
 
             if (input.tagName === 'TEXTAREA') {
@@ -222,8 +226,10 @@
                     isCorrect = true;
                 }
             } else {
+                // Special handling for the type of question 7 in the original, now 4
+                // Corrected for question 7 (now 4) where 'd' or '1' are correct
                 if (correct === '1' && (userAnswer === 'd' || userAnswer === '1' || userAnswer === 'd.1' || userAnswer === 'd 1')) {
-                    userAnswer = '1';
+                    userAnswer = '1'; // Normalize for comparison
                 }
                 if (userAnswer === correct) {
                     isCorrect = true;
@@ -244,22 +250,148 @@
             feedback.style.display = 'inline';
         }
 
+        // Pool of extra equations for dynamic addition
+        const extraEquations = [
+            {
+                questionHtml: `
+                    <span class="qnum">E1.</span> Calculate: $ (7 + 3) \times 2 - 5 $ <input class="answer-input" data-correct="15" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE1">Hint</button> <button class="idk" data-question="(7 + 3) × 2 - 5">I don't know</button>
+                    <div id="hintE1" class="hint">Brackets first: $7 + 3 = 10$. Then multiply: $10 \times 2 = 20$. Finally, subtract: $20 - 5 = 15$.</div>
+                `,
+                idkQuestion: "(7 + 3) × 2 - 5"
+            },
+            {
+                questionHtml: `
+                    <span class="qnum">E2.</span> Calculate: $ 18 \div (6 - 3) + 4 $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE2">Hint</button> <button class="idk" data-question="18 ÷ (6 - 3) + 4">I don't know</button>
+                    <div id="hintE2" class="hint">Brackets first: $6 - 3 = 3$. Then divide: $18 \div 3 = 6$. Finally, add: $6 + 4 = 10$.</div>
+                `,
+                idkQuestion: "18 ÷ (6 - 3) + 4"
+            },
+            {
+                questionHtml: `
+                    <span class="qnum">E3.</span> Calculate: $ 4^2 + 5 \times 2 $ <input class="answer-input" data-correct="26" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE3">Hint</button> <button class="idk" data-question="4^2 + 5 × 2">I don't know</button>
+                    <div id="hintE3" class="hint">Indices first: $4^2 = 16$. Then multiply: $5 \times 2 = 10$. Finally, add: $16 + 10 = 26$.</div>
+                `,
+                idkQuestion: "4^2 + 5 × 2"
+            },
+            {
+                questionHtml: `
+                    <span class="qnum">E4.</span> Calculate: $ (9 - 4)^2 - 10 $ <input class="answer-input" data-correct="15" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE4">Hint</button> <button class="idk" data-question="(9 - 4)^2 - 10">I don't know</button>
+                    <div id="hintE4" class="hint">Brackets first: $9 - 4 = 5$. Then indices: $5^2 = 25$. Finally, subtract: $25 - 10 = 15$.</div>
+                `,
+                idkQuestion: "(9 - 4)^2 - 10"
+            }
+        ];
+
+        // Function to attach event listeners to newly added question elements
+        function attachEventListenersToNewQuestion(newLi) {
+            const checkBtn = newLi.querySelector('.check-btn');
+            const hintBtn = newLi.querySelector('.hint-btn');
+            const idkBtn = newLi.querySelector('.idk');
+            const answerInput = newLi.querySelector('.answer-input');
+
+            if (checkBtn) {
+                checkBtn.addEventListener('click', () => {
+                    checkAnswer(answerInput, checkBtn);
+                });
+            }
+            if (hintBtn) {
+                hintBtn.addEventListener('click', () => {
+                    const hintId = hintBtn.dataset.hint;
+                    const hintDiv = document.getElementById(hintId);
+                    if (hintDiv) {
+                        hintDiv.style.display = hintDiv.style.display === 'block' ? 'none' : 'block';
+                    }
+                    const questionText = hintBtn.closest('li').querySelector('.qnum').nextSibling.textContent.trim();
+                    struggledQuestions.add(questionText);
+                    
+                    // Add new equation if cap not reached
+                    if (addedEquationCount < maxExtraEquations) {
+                        addNewEquation();
+                        showModal("New challenge added for extra practice!");
+                    } else {
+                        showModal("Max extra challenges added! Review the tutorials for more help.");
+                    }
+                });
+            }
+            if (idkBtn) {
+                idkBtn.addEventListener('click', () => {
+                    const q = idkBtn.dataset.question;
+                    const prompt = `Explain how to solve ${q} using BIDMAS, step by step, like teaching a 13-year-old.`;
+                    copyToClipboard(prompt);
+                    struggledQuestions.add(q);
+                });
+            }
+            if (answerInput) {
+                answerInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        checkAnswer(answerInput, checkBtn);
+                    }
+                });
+            }
+        }
+
+        // Function to add a new equation dynamically
+        function addNewEquation() {
+            if (extraEquations.length === 0) {
+                console.log("No more extra equations to add.");
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * extraEquations.length);
+            const equationToAdd = extraEquations.splice(randomIndex, 1)[0]; // Remove from pool
+
+            const practiceQuestionsOl = document.getElementById('practice-questions');
+            const newLi = document.createElement('li');
+            newLi.innerHTML = equationToAdd.questionHtml;
+            practiceQuestionsOl.appendChild(newLi);
+
+            // Re-attach event listeners to the newly added elements
+            attachEventListenersToNewQuestion(newLi);
+            addedEquationCount++;
+        }
+
+        // Initial attachment of event listeners to static questions
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('#practice-questions > li').forEach(li => {
+                attachEventListenersToNewQuestion(li);
+            });
+        });
+
+        // Event listener for IDK buttons (initial setup)
         document.querySelectorAll('.idk').forEach(btn => {
             btn.addEventListener('click', () => {
                 const q = btn.dataset.question;
                 const prompt = `Explain how to solve ${q} using BIDMAS, step by step, like teaching a 13-year-old.`;
                 copyToClipboard(prompt);
+                struggledQuestions.add(q); // Track the question
             });
         });
 
+        // Event listener for Hint buttons (initial setup)
         document.querySelectorAll('.hint-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const hintId = btn.dataset.hint;
                 const hintDiv = document.getElementById(hintId);
                 hintDiv.style.display = hintDiv.style.display === 'block' ? 'none' : 'block';
+
+                const questionTextElement = btn.closest('li').querySelector('.qnum').nextSibling;
+                let questionText = questionTextElement ? questionTextElement.textContent.trim() : 'Unknown Question';
+                // Clean up LaTeX formatting for better readability in report if present
+                questionText = questionText.replace(/\$(.*?)\$/g, (match, p1) => p1.replace(/\\times/g, 'x').replace(/\\div/g, '/').replace(/\^/g, '^')).trim();
+
+                struggledQuestions.add(questionText); // Track the question
+
+                // Add new equation if cap not reached
+                if (addedEquationCount < maxExtraEquations) {
+                    addNewEquation();
+                    showModal("New challenge added for extra practice!");
+                } else {
+                    showModal("Max extra challenges added! Review the tutorials for more help.");
+                }
             });
         });
 
+        // Event listener for Check buttons (initial setup)
         document.querySelectorAll('.check-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const input = btn.previousElementSibling;
@@ -267,6 +399,7 @@
             });
         });
 
+        // Event listener for Answer inputs (initial setup)
         document.querySelectorAll('.answer-input').forEach(input => {
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -289,8 +422,11 @@
         function resetProgress() {
             shards = 0;
             currentLevel = 0;
+            struggledQuestions.clear();
+            addedEquationCount = 0;
             document.getElementById('progress-shards').textContent = shards;
             document.getElementById('adventure-level').textContent = levels[0];
+            document.getElementById('areas-to-re-explore').textContent = 'None'; // Reset report area
             document.querySelectorAll('.feedback').forEach(f => {
                 f.style.display = 'none';
             });
@@ -301,12 +437,56 @@
             document.querySelectorAll('.hint').forEach(h => {
                 h.style.display = 'none';
             });
+            // Re-initialize original questions and remove dynamically added ones
+            const practiceQuestionsOl = document.getElementById('practice-questions');
+            // Remove all dynamically added list items (those without a value attribute)
+            const initialQuestionCount = 7; // Based on the initial number of <li> elements I put in the HTML
+            while (practiceQuestionsOl.children.length > initialQuestionCount) {
+                practiceQuestionsOl.removeChild(practiceQuestionsOl.lastChild);
+            }
+            // Re-attach listeners to ensure they are fresh for existing questions if needed
+            document.querySelectorAll('#practice-questions > li').forEach(li => {
+                // Remove existing listeners to prevent duplicates (though careful handling is better)
+                // For simplicity here, re-attach all, which is safe if not duplicating during initial load
+                // A better approach for reset would be to re-render the whole static practice section
+            });
         }
 
         function shareReport() {
-            const report = `Total Shards: ${shards}\nAdventure Level: ${levels[currentLevel]}\nDaily Check-in Streak: 0\nMastery Badges: 🏆\nAreas to Re-Explore: 🚧`;
+            const struggledList = struggledQuestions.size > 0 ? Array.from(struggledQuestions).join('; ') : 'None';
+            const report = `Total Shards: ${shards}\nAdventure Level: ${levels[currentLevel]}\nDaily Check-in Streak: 0\nMastery Badges: 🏆\nAreas to Re-Explore: ${struggledList}`;
             window.location.href = `mailto:trev2005+bilmas@gmail.com?subject=Dora's BIDMAS Report&body=${encodeURIComponent(report)}`;
         }
+
+        // Update the displayed Areas to Re-Explore in real-time
+        function updateAreasToReExploreDisplay() {
+            const struggledList = struggledQuestions.size > 0 ? Array.from(struggledQuestions).join('; ') : 'None';
+            document.getElementById('areas-to-re-explore').textContent = struggledList;
+        }
+
+        // Call this function whenever a question is added to struggledQuestions
+        const originalAdd = struggledQuestions.add;
+        struggledQuestions.add = function(item) {
+            originalAdd.apply(this, arguments);
+            updateAreasToReExploreDisplay();
+        };
+        const originalClear = struggledQuestions.clear;
+        struggledQuestions.clear = function() {
+            originalClear.apply(this, arguments);
+            updateAreasToReExploreDisplay();
+        };
+
+        // Fix the incorrect data-correct value for question with value="7" (Emily's shopping)
+        document.addEventListener('DOMContentLoaded', () => {
+            const emilyQuestionInput = document.querySelector('li[value="7"] .answer-input');
+            if (emilyQuestionInput) {
+                emilyQuestionInput.dataset.correct = "6.50";
+                const hintDiv = document.getElementById('hint7');
+                 if (hintDiv) {
+                    hintDiv.innerHTML = `Yummy math! Apples: $2 \\times 1.50 = 3.00$. Oranges: $3 \\times 0.75 = 2.25$. Banana: $1.25$. Total: $3.00 + 2.25 + 1.25 = 6.50$. Multiply quantities first! 🍩`;
+                 }
+            }
+        });
     </script>
 </body>
 </html>
