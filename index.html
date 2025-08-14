@@ -69,6 +69,22 @@
             max-height: 300px;
             overflow-y: auto;
         }
+        .gemini-storybook-link {
+            display: inline-block;
+            margin-top: 10px;
+            border-radius: 15px; /* Rounded corners for the image container */
+            overflow: hidden; /* Ensures image respects border-radius */
+        }
+        .gemini-storybook-link img {
+            width: 150px; /* Adjust size as needed */
+            height: auto;
+            border-radius: 15px; /* Rounded corners for the image */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Subtle shadow */
+            transition: transform 0.2s ease-in-out; /* Smooth hover effect */
+        }
+        .gemini-storybook-link img:hover {
+            transform: scale(1.05); /* Slightly enlarge on hover */
+        }
     </style>
     <!-- MathJax for rendering LaTeX equations -->
     <script type="text/javascript" id="MathJax-script" async
@@ -90,6 +106,9 @@
     <header>
         🦋 Dora's Math Quest: BIDMAS Expedition! 🚀
         <p>Hey Dora! You're the brave adventurer Integer Island needs! Let's master BIDMAS and save the day! Scroll down for fun concepts and practice problems. 🌟</p>
+        <a href="https://g.co/gemini/share/feaef2195e94" target="_blank" class="gemini-storybook-link" title="Click to explore the Gemini Storybook!">
+            <img src="https://placehold.co/150x100/A0D9EF/000000?text=Gemini%0AStorybook" alt="Gemini Storybook Graphic">
+        </a>
     </header>
 
     <nav>
