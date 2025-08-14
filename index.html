@@ -186,6 +186,7 @@
         const levels = ['Beginner Explorer', 'Junior Adventurer', 'Math Master', 'BIDMAS Boss'];
         let currentLevel = 0;
         const struggledQuestions = new Set(); // To track questions where hints were asked or 'I don't know' clicked
+        const incorrectlyAnsweredQuestions = new Map(); // New: To track questions answered incorrectly
         let addedEquationCount = 0;
         const maxExtraEquations = 93; // Maximum number of extra equations to add dynamically (total 100 with initial 7)
         let modalTimeoutId; // To store the timeout ID for the modal
@@ -201,10 +202,10 @@
             clearTimeout(modalTimeoutId); // Clear any existing timeout
             modalMessage.textContent = message;
             modal.style.display = "flex"; // Use flex to center the content
-            // Set timeout to close modal after 5 seconds
+            // Set timeout to close modal after 2 seconds
             modalTimeoutId = setTimeout(() => {
                 modal.style.display = "none";
-            }, 5000);
+            }, 2000); // Changed from 5000 to 2000 milliseconds
         }
 
         // When the user clicks on <span> (x), close the modal
@@ -237,50 +238,40 @@
         }
 
         // Function to safely get the question string from the associated 'idk' button or by parsing
-        function getQuestionString(buttonElement) {
-            // Attempt to get the question text from the data-question attribute of an associated 'idk' button.
-            // This is the most reliable source if available.
-            const idkButton = buttonElement.closest('li, ul').querySelector('.idk'); // Search within li or ul for sub-questions
-            if (idkButton && idkButton.dataset.question) {
-                return idkButton.dataset.question;
-            }
-
-            // Fallback if no 'idk' button with data-question is found.
-            let questionLi;
-            // Check if the button is within a sub-list item (e.g., Q1.a, Q2.b, Q3.a, Q3.b)
-            // If its closest <li> has a parent that is a <ul>, then it's a sub-question.
-            if (buttonElement.closest('li') && buttonElement.closest('li').parentElement && buttonElement.closest('li').parentElement.tagName === 'UL') {
-                // The .qnum is in the parent of the <ul>, which is the main question <li>.
-                questionLi = buttonElement.closest('li').parentElement.closest('li');
-            } else {
-                // This is a top-level question (Q4, Q5, Q6, Q7, or any dynamically added E-questions).
-                // The .qnum is directly inside this <li>.
-                questionLi = buttonElement.closest('li');
-            }
-
-            if (questionLi) {
-                const qnumSpan = questionLi.querySelector('.qnum');
+        function getQuestionString(element) {
+            // Prioritize data-question from an 'idk' button if available, as it's the clearest representation
+            const parentLi = element.closest('li');
+            if (parentLi) {
+                const idkButton = parentLi.querySelector('.idk');
+                if (idkButton && idkButton.dataset.question) {
+                    return idkButton.dataset.question;
+                }
+                // For sub-questions (like 1.a, 1.b), the .qnum is in the main <li> ancestor
+                const mainQuestionLi = element.closest('ul')?.closest('li') || parentLi;
+                const qnumSpan = mainQuestionLi.querySelector('.qnum');
                 if (qnumSpan) {
-                    // Collect the text that immediately follows the .qnum span within this questionLi.
-                    // This handles both simple text and potential LaTeX formatted text.
                     let textContent = '';
                     let currentNode = qnumSpan.nextSibling;
-                    // Iterate through sibling nodes until an element node (like <ul> or <br>) is encountered
-                    while (currentNode && currentNode.nodeType !== Node.ELEMENT_NODE) { 
+                    while (currentNode && currentNode.nodeType !== Node.ELEMENT_NODE) {
                         if (currentNode.nodeType === Node.TEXT_NODE) {
                             textContent += currentNode.textContent;
                         }
                         currentNode = currentNode.nextSibling;
                     }
-                    // Trim and replace multiple spaces
                     textContent = textContent.replace(/\s+/g, ' ').trim();
                     if (textContent) {
-                        return textContent;
+                        // For sub-questions, append the sub-label (e.g., "a. " or "b. ")
+                        const subQuestionLabel = element.closest('li').textContent.match(/^[a-z]\./);
+                        if (subQuestionLabel) {
+                            return `${qnumSpan.textContent} ${subQuestionLabel[0]} ${textContent}`;
+                        }
+                        return `${qnumSpan.textContent} ${textContent}`;
                     }
                 }
             }
-            return 'Unknown Question'; // Fallback if unable to determine the question text
+            return 'Unknown Question'; // Fallback
         }
+
 
         function checkAnswer(input, btn) {
             const feedback = btn.nextElementSibling;
@@ -303,6 +294,8 @@
                 }
             }
 
+            const questionText = getQuestionString(input); // Get the question text for tracking
+
             if (isCorrect) {
                 feedback.textContent = 'Awesome, Dora! You nailed it! 🎉';
                 feedback.classList.remove('wrong');
@@ -310,33 +303,43 @@
                     updateShards();
                     input.dataset.checked = true;
                 }
+                // If a question was previously answered incorrectly and now corrected, remove it from the incorrect list
+                if (incorrectlyAnsweredQuestions.has(questionText)) {
+                    incorrectlyAnsweredQuestions.delete(questionText);
+                }
             } else {
                 feedback.textContent = 'Oops, not quite! Try again, you’ve got this! 💫';
                 feedback.classList.add('wrong');
+                // Store incorrect answer details
+                incorrectlyAnsweredQuestions.set(questionText, {
+                    wrongAnswer: input.value.trim(), // Keep original user input for report
+                    correctAnswer: input.dataset.correct // Keep original correct answer for report
+                });
             }
             feedback.style.display = 'inline';
+            updateAreasToReExploreDisplay(); // Update display for incorrect answers
         }
 
         // Pool of extra equations for dynamic addition - Expanded to ~93 additional equations
         const extraEquations = [
             {
                 questionHtml: `
-                    <span class="qnum">E1.</span> Calculate: $ (7 + 3) \times 2 - 5 $ <input class="answer-input" data-correct="15" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE1">Hint</button> <button class="idk" data-question="(7 + 3) × 2 - 5">I don't know</button>
-                    <div id="hintE1" class="hint">Brackets first: $7 + 3 = 10$. Then multiply: $10 \times 2 = 20$. Finally, subtract: $20 - 5 = 15$.</div>
+                    <span class="qnum">E1.</span> Calculate: $ (7 + 3) \\times 2 - 5 $ <input class="answer-input" data-correct="15" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE1">Hint</button> <button class="idk" data-question="(7 + 3) × 2 - 5">I don't know</button>
+                    <div id="hintE1" class="hint">Brackets first: $7 + 3 = 10$. Then multiply: $10 \\times 2 = 20$. Finally, subtract: $20 - 5 = 15$.</div>
                 `,
                 idkQuestion: "(7 + 3) × 2 - 5"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E2.</span> Calculate: $ 18 \div (6 - 3) + 4 $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE2">Hint</button> <button class="idk" data-question="18 ÷ (6 - 3) + 4">I don't know</button>
-                    <div id="hintE2" class="hint">Brackets first: $6 - 3 = 3$. Then divide: $18 \div 3 = 6$. Finally, add: $6 + 4 = 10$.</div>
+                    <span class="qnum">E2.</span> Calculate: $ 18 \\div (6 - 3) + 4 $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE2">Hint</button> <button class="idk" data-question="18 ÷ (6 - 3) + 4">I don't know</button>
+                    <div id="hintE2" class="hint">Brackets first: $6 - 3 = 3$. Then divide: $18 \\div 3 = 6$. Finally, add: $6 + 4 = 10$.</div>
                 `,
-                idkQuestion: "18 ÷ (6 - 3) + 4" // Corrected from iddQuestion
+                idkQuestion: "18 ÷ (6 - 3) + 4"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E3.</span> Calculate: $ 4^2 + 5 \times 2 $ <input class="answer-input" data-correct="26" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE3">Hint</button> <button class="idk" data-question="4^2 + 5 × 2">I don't know</button>
-                    <div id="hintE3" class="hint">Indices first: $4^2 = 16$. Then multiply: $5 \times 2 = 10$. Finally, add: $16 + 10 = 26$.</div>
+                    <span class="qnum">E3.</span> Calculate: $ 4^2 + 5 \\times 2 $ <input class="answer-input" data-correct="26" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE3">Hint</button> <button class="idk" data-question="4^2 + 5 × 2">I don't know</button>
+                    <div id="hintE3" class="hint">Indices first: $4^2 = 16$. Then multiply: $5 \\times 2 = 10$. Finally, add: $16 + 10 = 26$.</div>
                 `,
                 idkQuestion: "4^2 + 5 × 2"
             },
@@ -349,22 +352,22 @@
             },
             {
                 questionHtml: `
-                    <span class="qnum">E5.</span> Calculate: $ 10 \times 3 - 8 \div 2 $ <input class="answer-input" data-correct="26" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE5">Hint</button> <button class="idk" data-question="10 × 3 - 8 ÷ 2">I don't know</button>
-                    <div id="hintE5" class="hint">Multiply/Divide first: $10 \times 3 = 30$, $8 \div 2 = 4$. Then subtract: $30 - 4 = 26$.</div>
+                    <span class="qnum">E5.</span> Calculate: $ 10 \\times 3 - 8 \\div 2 $ <input class="answer-input" data-correct="26" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE5">Hint</button> <button class="idk" data-question="10 × 3 - 8 ÷ 2">I don't know</button>
+                    <div id="hintE5" class="hint">Multiply/Divide first: $10 \\times 3 = 30$, $8 \\div 2 = 4$. Then subtract: $30 - 4 = 26$.</div>
                 `,
                 idkQuestion: "10 × 3 - 8 ÷ 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E6.</span> Calculate: $ 12 + 6 \div 3 \times 2 $ <input class="answer-input" data-correct="16" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE6">Hint</button> <button class="idk" data-question="12 + 6 ÷ 3 × 2">I don't know</button>
-                    <div id="hintE6" class="hint">Divide/Multiply left to right: $6 \div 3 = 2$, then $2 \times 2 = 4$. Then add: $12 + 4 = 16$.</div>
+                    <span class="qnum">E6.</span> Calculate: $ 12 + 6 \\div 3 \\times 2 $ <input class="answer-input" data-correct="16" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE6">Hint</button> <button class="idk" data-question="12 + 6 ÷ 3 × 2">I don't know</button>
+                    <div id="hintE6" class="hint">Divide/Multiply left to right: $6 \\div 3 = 2$, then $2 \\times 2 = 4$. Then add: $12 + 4 = 16$.</div>
                 `,
                 idkQuestion: "12 + 6 ÷ 3 × 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E7.</span> Calculate: $ (5 + 7) \div (8 - 2) $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE7">Hint</button> <button class="idk" data-question="(5 + 7) ÷ (8 - 2)">I don't know</button>
-                    <div id="hintE7" class="hint">Solve brackets first: $5 + 7 = 12$, $8 - 2 = 6$. Then divide: $12 \div 6 = 2$.</div>
+                    <span class="qnum">E7.</span> Calculate: $ (5 + 7) \\div (8 - 2) $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE7">Hint</button> <button class="idk" data-question="(5 + 7) ÷ (8 - 2)">I don't know</button>
+                    <div id="hintE7" class="hint">Solve brackets first: $5 + 7 = 12$, $8 - 2 = 6$. Then divide: $12 \\div 6 = 2$.</div>
                 `,
                 idkQuestion: "(5 + 7) ÷ (8 - 2)"
             },
@@ -377,92 +380,92 @@
             },
             {
                 questionHtml: `
-                    <span class="qnum">E9.</span> Calculate: $ 15 - (3 \times 4) + 6 $ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE9">Hint</button> <button class="idk" data-question="15 - (3 × 4) + 6">I don't know</button>
-                    <div id="hintE9" class="hint">Brackets first: $3 \times 4 = 12$. Then left to right: $15 - 12 = 3$, then $3 + 6 = 9$.</div>
+                    <span class="qnum">E9.</span> Calculate: $ 15 - (3 \\times 4) + 6 $ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE9">Hint</button> <button class="idk" data-question="15 - (3 × 4) + 6">I don't know</button>
+                    <div id="hintE9" class="hint">Brackets first: $3 \\times 4 = 12$. Then left to right: $15 - 12 = 3$, then $3 + 6 = 9$.</div>
                 `,
                 idkQuestion: "15 - (3 × 4) + 6"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E10.</span> Calculate: $ 25 \div 5 \times (2 + 3) $ <input class="answer-input" data-correct="25" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE10">Hint</button> <button class="idk" data-question="25 ÷ 5 × (2 + 3)">I don't know</button>
-                    <div id="hintE10" class="hint">Brackets first: $2 + 3 = 5$. Then left to right multiply/divide: $25 \div 5 = 5$, then $5 \times 5 = 25$.</div>
+                    <span class="qnum">E10.</span> Calculate: $ 25 \\div 5 \\times (2 + 3) $ <input class="answer-input" data-correct="25" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE10">Hint</button> <button class="idk" data-question="25 ÷ 5 × (2 + 3)">I don't know</button>
+                    <div id="hintE10" class="hint">Brackets first: $2 + 3 = 5$. Then left to right multiply/divide: $25 \\div 5 = 5$, then $5 \\times 5 = 25$.</div>
                 `,
                 idkQuestion: "25 ÷ 5 × (2 + 3)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E11.</span> Calculate: $ -6 + 10 \div 2 $ <input class="answer-input" data-correct="-1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE11">Hint</button> <button class="idk" data-question="-6 + 10 ÷ 2">I don't know</button>
-                    <div id="hintE11" class="hint">Divide first: $10 \div 2 = 5$. Then add: $-6 + 5 = -1$.</div>
+                    <span class="qnum">E11.</span> Calculate: $ -6 + 10 \\div 2 $ <input class="answer-input" data-correct="-1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE11">Hint</button> <button class="idk" data-question="-6 + 10 ÷ 2">I don't know</button>
+                    <div id="hintE11" class="hint">Divide first: $10 \\div 2 = 5$. Then add: $-6 + 5 = -1$.</div>
                 `,
                 idkQuestion: "-6 + 10 ÷ 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E12.</span> Calculate: $ 3 \times (4 - 7) + 2^2 $ <input class="answer-input" data-correct="-5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE12">Hint</button> <button class="idk" data-question="3 × (4 - 7) + 2^2">I don't know</button>
-                    <div id="hintE12" class="hint">Brackets: $4 - 7 = -3$. Indices: $2^2 = 4$. Multiply: $3 \times (-3) = -9$. Add: $-9 + 4 = -5$.</div>
+                    <span class="qnum">E12.</span> Calculate: $ 3 \\times (4 - 7) + 2^2 $ <input class="answer-input" data-correct="-5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE12">Hint</button> <button class="idk" data-question="3 × (4 - 7) + 2^2">I don't know</button>
+                    <div id="hintE12" class="hint">Brackets: $4 - 7 = -3$. Indices: $2^2 = 4$. Multiply: $3 \\times (-3) = -9$. Add: $-9 + 4 = -5$.</div>
                 `,
                 idkQuestion: "3 × (4 - 7) + 2^2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E13.</span> Calculate: $ 50 \div 10 - (-3) $ <input class="answer-input" data-correct="8" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE13">Hint</button> <button class="idk" data-question="50 ÷ 10 - (-3)">I don't know</button>
-                    <div id="hintE13" class="hint">Divide first: $50 \div 10 = 5$. Subtracting a negative is adding: $5 - (-3) = 5 + 3 = 8$.</div>
+                    <span class="qnum">E13.</span> Calculate: $ 50 \\div 10 - (-3) $ <input class="answer-input" data-correct="8" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE13">Hint</button> <button class="idk" data-question="50 ÷ 10 - (-3)">I don't know</button>
+                    <div id="hintE13" class="hint">Divide first: $50 \\div 10 = 5$. Subtracting a negative is adding: $5 - (-3) = 5 + 3 = 8$.</div>
                 `,
                 idkQuestion: "50 ÷ 10 - (-3)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E14.</span> Calculate: $ 7^2 - 10 \times 4 $ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE14">Hint</button> <button class="idk" data-question="7^2 - 10 × 4">I don't know</button>
-                    <div id="hintE14" class="hint">Indices: $7^2 = 49$. Multiply: $10 \times 4 = 40$. Subtract: $49 - 40 = 9$.</div>
+                    <span class="qnum">E14.</span> Calculate: $ 7^2 - 10 \\times 4 $ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE14">Hint</button> <button class="idk" data-question="7^2 - 10 × 4">I don't know</button>
+                    <div id="hintE14" class="hint">Indices: $7^2 = 49$. Multiply: $10 \\times 4 = 40$. Subtract: $49 - 40 = 9$.</div>
                 `,
                 idkQuestion: "7^2 - 10 × 4"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E15.</span> Calculate: $ (1 + 2) \times (3 + 4) $ <input class="answer-input" data-correct="21" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE15">Hint</button> <button class="idk" data-question="(1 + 2) × (3 + 4)">I don't know</button>
-                    <div id="hintE15" class="hint">Brackets first: $1 + 2 = 3$, $3 + 4 = 7$. Then multiply: $3 \times 7 = 21$.</div>
+                    <span class="qnum">E15.</span> Calculate: $ (1 + 2) \\times (3 + 4) $ <input class="answer-input" data-correct="21" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE15">Hint</button> <button class="idk" data-question="(1 + 2) × (3 + 4)">I don't know</button>
+                    <div id="hintE15" class="hint">Brackets first: $1 + 2 = 3$, $3 + 4 = 7$. Then multiply: $3 \\times 7 = 21$.</div>
                 `,
                 idkQuestion: "(1 + 2) × (3 + 4)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E16.</span> Calculate: $ 100 \div 5^2 - 3 $ <input class="answer-input" data-correct="1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE16">Hint</button> <button class="idk" data-question="100 ÷ 5^2 - 3">I don't know</button>
-                    <div id="hintE16" class="hint">Indices first: $5^2 = 25$. Then divide: $100 \div 25 = 4$. Finally, subtract: $4 - 3 = 1$.</div>
+                    <span class="qnum">E16.</span> Calculate: $ 100 \\div 5^2 - 3 $ <input class="answer-input" data-correct="1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE16">Hint</button> <button class="idk" data-question="100 ÷ 5^2 - 3">I don't know</button>
+                    <div id="hintE16" class="hint">Indices first: $5^2 = 25$. Then divide: $100 \\div 25 = 4$. Finally, subtract: $4 - 3 = 1$.</div>
                 `,
                 idkQuestion: "100 ÷ 5^2 - 3"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E17.</span> Calculate: $ 1.5 + 2.5 \times 2 $ <input class="answer-input" data-correct="6.5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE17">Hint</button> <button class="idk" data-question="1.5 + 2.5 × 2">I don't know</button>
-                    <div id="hintE17" class="hint">Multiply first: $2.5 \times 2 = 5$. Then add: $1.5 + 5 = 6.5$.</div>
+                    <span class="qnum">E17.</span> Calculate: $ 1.5 + 2.5 \\times 2 $ <input class="answer-input" data-correct="6.5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE17">Hint</button> <button class="idk" data-question="1.5 + 2.5 × 2">I don't know</button>
+                    <div id="hintE17" class="hint">Multiply first: $2.5 \\times 2 = 5$. Then add: $1.5 + 5 = 6.5$.</div>
                 `,
                 idkQuestion: "1.5 + 2.5 × 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E18.</span> Calculate: $ 14 - 6 \div 2 + 5 $ <input class="answer-input" data-correct="16" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE18">Hint</button> <button class="idk" data-question="14 - 6 ÷ 2 + 5">I don't know</button>
-                    <div id="hintE18" class="hint">Divide first: $6 \div 2 = 3$. Then left to right: $14 - 3 = 11$, then $11 + 5 = 16$.</div>
+                    <span class="qnum">E18.</span> Calculate: $ 14 - 6 \\div 2 + 5 $ <input class="answer-input" data-correct="16" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE18">Hint</button> <button class="idk" data-question="14 - 6 ÷ 2 + 5">I don't know</button>
+                    <div id="hintE18" class="hint">Divide first: $6 \\div 2 = 3$. Then left to right: $14 - 3 = 11$, then $11 + 5 = 16$.</div>
                 `,
                 idkQuestion: "14 - 6 ÷ 2 + 5"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E19.</span> Calculate: $ (4 - 8) \div 2 $ <input class="answer-input" data-correct="-2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE19">Hint</button> <button class="idk" data-question="(4 - 8) ÷ 2">I don't know</button>
-                    <div id="hintE19" class="hint">Brackets first: $4 - 8 = -4$. Then divide: $-4 \div 2 = -2$.</div>
+                    <span class="qnum">E19.</span> Calculate: $ (4 - 8) \\div 2 $ <input class="answer-input" data-correct="-2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE19">Hint</button> <button class="idk" data-question="(4 - 8) ÷ 2">I don't know</button>
+                    <div id="hintE19" class="hint">Brackets first: $4 - 8 = -4$. Then divide: $-4 \\div 2 = -2$.</div>
                 `,
                 idkQuestion: "(4 - 8) ÷ 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E20.</span> Calculate: $ -9 \times (-2) - 5 $ <input class="answer-input" data-correct="13" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE20">Hint</button> <button class="idk" data-question="-9 × (-2) - 5">I don't know</button>
-                    <div id="hintE20" class="hint">Multiply first: $-9 \times (-2) = 18$. Then subtract: $18 - 5 = 13$.</div>
+                    <span class="qnum">E20.</span> Calculate: $ -9 \\times (-2) - 5 $ <input class="answer-input" data-correct="13" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE20">Hint</button> <button class="idk" data-question="-9 × (-2) - 5">I don't know</button>
+                    <div id="hintE20" class="hint">Multiply first: $-9 \\times (-2) = 18$. Then subtract: $18 - 5 = 13$.</div>
                 `,
                 idkQuestion: "-9 × (-2) - 5"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E21.</span> Calculate: $ (10 + 2^2) \div 7 $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE21">Hint</button> <button class="idk" data-question="(10 + 2^2) ÷ 7">I don't know</button>
-                    <div id="hintE21" class="hint">Inside brackets: Indices $2^2 = 4$. Then $10 + 4 = 14$. Then divide: $14 \div 7 = 2$.</div>
+                    <span class="qnum">E21.</span> Calculate: $ (10 + 2^2) \\div 7 $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE21">Hint</button> <button class="idk" data-question="(10 + 2^2) ÷ 7">I don't know</button>
+                    <div id="hintE21" class="hint">Inside brackets: Indices $2^2 = 4$. Then $10 + 4 = 14$. Then divide: $14 \\div 7 = 2$.</div>
                 `,
                 idkQuestion: "(10 + 2^2) ÷ 7"
             },
@@ -475,99 +478,99 @@
             },
             {
                 questionHtml: `
-                    <span class="qnum">E23.</span> Calculate: $ 9 - 3 \times (-4) $ <input class="answer-input" data-correct="21" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE23">Hint</button> <button class="idk" data-question="9 - 3 × (-4)">I don't know</button>
-                    <div id="hintE23" class="hint">Multiply first: $3 \times (-4) = -12$. Then subtract: $9 - (-12) = 9 + 12 = 21$.</div>
+                    <span class="qnum">E23.</span> Calculate: $ 9 - 3 \\times (-4) $ <input class="answer-input" data-correct="21" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE23">Hint</button> <button class="idk" data-question="9 - 3 × (-4)">I don't know</button>
+                    <div id="hintE23" class="hint">Multiply first: $3 \\times (-4) = -12$. Then subtract: $9 - (-12) = 9 + 12 = 21$.</div>
                 `,
                 idkQuestion: "9 - 3 × (-4)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E24.</span> Calculate: $ 1/2 + 3/4 \times 1/3 $ <input class="answer-input" data-correct="0.75" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE24">Hint</button> <button class="idk" data-question="1/2 + 3/4 × 1/3">I don't know</button>
-                    <div id="hintE24" class="hint">Multiply first: $3/4 \times 1/3 = 3/12 = 1/4$. Then add: $1/2 + 1/4 = 2/4 + 1/4 = 3/4 = 0.75$.</div>
+                    <span class="qnum">E24.</span> Calculate: $ 1/2 + 3/4 \\times 1/3 $ <input class="answer-input" data-correct="0.75" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE24">Hint</button> <button class="idk" data-question="1/2 + 3/4 × 1/3">I don't know</button>
+                    <div id="hintE24" class="hint">Multiply first: $3/4 \\times 1/3 = 3/12 = 1/4$. Then add: $1/2 + 1/4 = 2/4 + 1/4 = 3/4 = 0.75$.</div>
                 `,
                 idkQuestion: "1/2 + 3/4 × 1/3"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E25.</span> Calculate: $ (20 - 5) \div 3 + 1 $ <input class="answer-input" data-correct="6" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE25">Hint</button> <button class="idk" data-question="(20 - 5) ÷ 3 + 1">I don't know</button>
-                    <div id="hintE25" class="hint">Brackets: $20 - 5 = 15$. Divide: $15 \div 3 = 5$. Add: $5 + 1 = 6$.</div>
+                    <span class="qnum">E25.</span> Calculate: $ (20 - 5) \\div 3 + 1 $ <input class="answer-input" data-correct="6" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE25">Hint</button> <button class="idk" data-question="(20 - 5) ÷ 3 + 1">I don't know</button>
+                    <div id="hintE25" class="hint">Brackets: $20 - 5 = 15$. Divide: $15 \\div 3 = 5$. Add: $5 + 1 = 6$.</div>
                 `,
                 idkQuestion: "(20 - 5) ÷ 3 + 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E26.</span> Calculate: $ 5 \times 4 - 2^2 + 1 $ <input class="answer-input" data-correct="17" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE26">Hint</button> <button class="idk" data-question="5 × 4 - 2^2 + 1">I don't know</button>
-                    <div id="hintE26" class="hint">Indices: $2^2 = 4$. Multiply: $5 \times 4 = 20$. Then left to right: $20 - 4 = 16$, then $16 + 1 = 17$.</div>
+                    <span class="qnum">E26.</span> Calculate: $ 5 \\times 4 - 2^2 + 1 $ <input class="answer-input" data-correct="17" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE26">Hint</button> <button class="idk" data-question="5 × 4 - 2^2 + 1">I don't know</button>
+                    <div id="hintE26" class="hint">Indices: $2^2 = 4$. Multiply: $5 \\times 4 = 20$. Then left to right: $20 - 4 = 16$, then $16 + 1 = 17$.</div>
                 `,
                 idkQuestion: "5 × 4 - 2^2 + 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E27.</span> Calculate: $ 36 \div (2 \times 3) + 5 $ <input class="answer-input" data-correct="11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE27">Hint</button> <button class="idk" data-question="36 ÷ (2 × 3) + 5">I don't know</button>
-                    <div id="hintE27" class="hint">Brackets: $2 \times 3 = 6$. Divide: $36 \div 6 = 6$. Add: $6 + 5 = 11$.</div>
+                    <span class="qnum">E27.</span> Calculate: $ 36 \\div (2 \\times 3) + 5 $ <input class="answer-input" data-correct="11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE27">Hint</button> <button class="idk" data-question="36 ÷ (2 × 3) + 5">I don't know</button>
+                    <div id="hintE27" class="hint">Brackets: $2 \\times 3 = 6$. Divide: $36 \\div 6 = 6$. Add: $6 + 5 = 11$.</div>
                 `,
                 idkQuestion: "36 ÷ (2 × 3) + 5"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E28.</span> Calculate: $ 10 - 2 \times (-5) $ <input class="answer-input" data-correct="20" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE28">Hint</button> <button class="idk" data-question="10 - 2 × (-5)">I don't know</button>
-                    <div id="hintE28" class="hint">Multiply first: $2 \times (-5) = -10$. Subtract: $10 - (-10) = 10 + 10 = 20$.</div>
+                    <span class="qnum">E28.</span> Calculate: $ 10 - 2 \\times (-5) $ <input class="answer-input" data-correct="20" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE28">Hint</button> <button class="idk" data-question="10 - 2 × (-5)">I don't know</button>
+                    <div id="hintE28" class="hint">Multiply first: $2 \\times (-5) = -10$. Subtract: $10 - (-10) = 10 + 10 = 20$.</div>
                 `,
                 idkQuestion: "10 - 2 × (-5)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E29.</span> Calculate: $ (15 - 3) \div 4 + 7 $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE29">Hint</button> <button class="idk" data-question="(15 - 3) ÷ 4 + 7">I don't know</button>
-                    <div id="hintE29" class="hint">Brackets: $15 - 3 = 12$. Divide: $12 \div 4 = 3$. Add: $3 + 7 = 10$.</div>
+                    <span class="qnum">E29.</span> Calculate: $ (15 - 3) \\div 4 + 7 $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE29">Hint</button> <button class="idk" data-question="(15 - 3) ÷ 4 + 7">I don't know</button>
+                    <div id="hintE29" class="hint">Brackets: $15 - 3 = 12$. Divide: $12 \\div 4 = 3$. Add: $3 + 7 = 10$.</div>
                 `,
                 idkQuestion: "(15 - 3) ÷ 4 + 7"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E30.</span> Calculate: $ 6 + 2 \times 3^2 $ <input class="answer-input" data-correct="24" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE30">Hint</button> <button class="idk" data-question="6 + 2 × 3^2">I don't know</button>
-                    <div id="hintE30" class="hint">Indices: $3^2 = 9$. Multiply: $2 \times 9 = 18$. Add: $6 + 18 = 24$.</div>
+                    <span class="qnum">E30.</span> Calculate: $ 6 + 2 \\times 3^2 $ <input class="answer-input" data-correct="24" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE30">Hint</button> <button class="idk" data-question="6 + 2 × 3^2">I don't know</button>
+                    <div id="hintE30" class="hint">Indices: $3^2 = 9$. Multiply: $2 \\times 9 = 18$. Add: $6 + 18 = 24$.</div>
                 `,
                 idkQuestion: "6 + 2 × 3^2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E31.</span> Calculate: $ 12 \div (-2) + 5 $ <input class="answer-input" data-correct="-1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE31">Hint</button> <button class="idk" data-question="12 ÷ (-2) + 5">I don't know</button>
-                    <div id="hintE31" class="hint">Divide first: $12 \div (-2) = -6$. Then add: $-6 + 5 = -1$.</div>
+                    <span class="qnum">E31.</span> Calculate: $ 12 \\div (-2) + 5 $ <input class="answer-input" data-correct="-1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE31">Hint</button> <button class="idk" data-question="12 ÷ (-2) + 5">I don't know</button>
+                    <div id="hintE31" class="hint">Divide first: $12 \\div (-2) = -6$. Then add: $-6 + 5 = -1$.</div>
                 `,
                 idkQuestion: "12 ÷ (-2) + 5"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E32.</span> Calculate: $ (10 - 4)^2 \div 9 $ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE32">Hint</button> <button class="idk" data-question="(10 - 4)^2 ÷ 9">I don't know</button>
-                    <div id="hintE32" class="hint">Brackets: $10 - 4 = 6$. Indices: $6^2 = 36$. Divide: $36 \div 9 = 4$.</div>
+                    <span class="qnum">E32.</span> Calculate: $ (10 - 4)^2 \\div 9 $ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE32">Hint</button> <button class="idk" data-question="(10 - 4)^2 ÷ 9">I don't know</button>
+                    <div id="hintE32" class="hint">Brackets: $10 - 4 = 6$. Indices: $6^2 = 36$. Divide: $36 \\div 9 = 4$.</div>
                 `,
                 idkQuestion: "(10 - 4)^2 ÷ 9"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E33.</span> Calculate: $ 7 \times (-3) + 10 $ <input class="answer-input" data-correct="-11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE33">Hint</button> <button class="idk" data-question="7 × (-3) + 10">I don't know</button>
-                    <div id="hintE33" class="hint">Multiply first: $7 \times (-3) = -21$. Then add: $-21 + 10 = -11$.</div>
+                    <span class="qnum">E33.</span> Calculate: $ 7 \\times (-3) + 10 $ <input class="answer-input" data-correct="-11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE33">Hint</button> <button class="idk" data-question="7 × (-3) + 10">I don't know</button>
+                    <div id="hintE33" class="hint">Multiply first: $7 \\times (-3) = -21$. Then add: $-21 + 10 = -11$.</div>
                 `,
                 idkQuestion: "7 × (-3) + 10"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E34.</span> Calculate: $ 2 + 3 \times 4 - 5 \div 1 $ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE34">Hint</button> <button class="idk" data-question="2 + 3 × 4 - 5 ÷ 1">I don't know</button>
-                    <div id="hintE34" class="hint">Multiply/Divide: $3 \times 4 = 12$, $5 \div 1 = 5$. Left to right: $2 + 12 - 5 = 14 - 5 = 9$.</div>
+                    <span class="qnum">E34.</span> Calculate: $ 2 + 3 \\times 4 - 5 \\div 1 $ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE34">Hint</button> <button class="idk" data-question="2 + 3 × 4 - 5 ÷ 1">I don't know</button>
+                    <div id="hintE34" class="hint">Multiply/Divide: $3 \\times 4 = 12$, $5 \\div 1 = 5$. Left to right: $2 + 12 - 5 = 14 - 5 = 9$.</div>
                 `,
                 idkQuestion: "2 + 3 × 4 - 5 ÷ 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E35.</span> Calculate: $ (8 + 2) \times (9 - 4) $ <input class="answer-input" data-correct="50" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE35">Hint</button> <button class="idk" data-question="(8 + 2) × (9 - 4)">I don't know</button>
-                    <div id="hintE35" class="hint">Brackets: $8 + 2 = 10$, $9 - 4 = 5$. Then multiply: $10 \times 5 = 50$.</div>
+                    <span class="qnum">E35.</span> Calculate: $ (8 + 2) \\times (9 - 4) $ <input class="answer-input" data-correct="50" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE35">Hint</button> <button class="idk" data-question="(8 + 2) × (9 - 4)">I don't know</button>
+                    <div id="hintE35" class="hint">Brackets: $8 + 2 = 10$, $9 - 4 = 5$. Then multiply: $10 \\times 5 = 50$.</div>
                 `,
                 idkQuestion: "(8 + 2) × (9 - 4)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E36.</span> Calculate: $ 1/2 \times (4 + 6) $ <input class="answer-input" data-correct="5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE36">Hint</button> <button class="idk" data-question="1/2 × (4 + 6)">I don't know</button>
-                    <div id="hintE36" class="hint">Brackets: $4 + 6 = 10$. Then multiply: $1/2 \times 10 = 5$.</div>
+                    <span class="qnum">E36.</span> Calculate: $ 1/2 \\times (4 + 6) $ <input class="answer-input" data-correct="5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE36">Hint</button> <button class="idk" data-question="1/2 × (4 + 6)">I don't know</button>
+                    <div id="hintE36" class="hint">Brackets: $4 + 6 = 10$. Then multiply: $1/2 \\times 10 = 5$.</div>
                 `,
                 idkQuestion: "1/2 × (4 + 6)"
             },
@@ -580,239 +583,239 @@
             },
             {
                 questionHtml: `
-                    <span class="qnum">E38.</span> Calculate: $ (-5) + (-3) \times 2 $ <input class="answer-input" data-correct="-11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE38">Hint</button> <button class="idk" data-question="(-5) + (-3) × 2">I don't know</button>
-                    <div id="hintE38" class="hint">Multiply first: $(-3) \times 2 = -6$. Then add: $-5 + (-6) = -11$.</div>
+                    <span class="qnum">E38.</span> Calculate: $ (-5) + (-3) \\times 2 $ <input class="answer-input" data-correct="-11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE38">Hint</button> <button class="idk" data-question="(-5) + (-3) × 2">I don't know</button>
+                    <div id="hintE38" class="hint">Multiply first: $(-3) \\times 2 = -6$. Then add: $-5 + (-6) = -11$.</div>
                 `,
                 idkQuestion: "(-5) + (-3) × 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E39.</span> Calculate: $ (10 - 2) \div (1 + 3) $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE39">Hint</button> <button class="idk" data-question="(10 - 2) ÷ (1 + 3)">I don't know</button>
-                    <div id="hintE39" class="hint">Brackets: $10 - 2 = 8$, $1 + 3 = 4$. Then divide: $8 \div 4 = 2$.</div>
+                    <span class="qnum">E39.</span> Calculate: $ (10 - 2) \\div (1 + 3) $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE39">Hint</button> <button class="idk" data-question="(10 - 2) ÷ (1 + 3)">I don't know</button>
+                    <div id="hintE39" class="hint">Brackets: $10 - 2 = 8$, $1 + 3 = 4$. Then divide: $8 \\div 4 = 2$.</div>
                 `,
                 idkQuestion: "(10 - 2) ÷ (1 + 3)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E40.</span> Calculate: $ 15 \div 3 - 2 \times 1 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE40">Hint</button> <button class="idk" data-question="15 ÷ 3 - 2 × 1">I don't know</button>
-                    <div id="hintE40" class="hint">Divide: $15 \div 3 = 5$. Multiply: $2 \times 1 = 2$. Then subtract: $5 - 2 = 3$.</div>
+                    <span class="qnum">E40.</span> Calculate: $ 15 \\div 3 - 2 \\times 1 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE40">Hint</button> <button class="idk" data-question="15 ÷ 3 - 2 × 1">I don't know</button>
+                    <div id="hintE40" class="hint">Divide: $15 \\div 3 = 5$. Multiply: $2 \\times 1 = 2$. Then subtract: $5 - 2 = 3$.</div>
                 `,
                 idkQuestion: "15 ÷ 3 - 2 × 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E41.</span> Calculate: $ 4 \times (5 - 2) - 3^2 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE41">Hint</button> <button class="idk" data-question="4 × (5 - 2) - 3^2">I don't know</button>
-                    <div id="hintE41" class="hint">Brackets: $5 - 2 = 3$. Indices: $3^2 = 9$. Multiply: $4 \times 3 = 12$. Subtract: $12 - 9 = 3$.</div>
+                    <span class="qnum">E41.</span> Calculate: $ 4 \\times (5 - 2) - 3^2 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE41">Hint</button> <button class="idk" data-question="4 × (5 - 2) - 3^2">I don't know</button>
+                    <div id="hintE41" class="hint">Brackets: $5 - 2 = 3$. Indices: $3^2 = 9$. Multiply: $4 \\times 3 = 12$. Subtract: $12 - 9 = 3$.</div>
                 `,
                 idkQuestion: "4 × (5 - 2) - 3^2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E42.</span> Calculate: $ 25 - 5 \times 2 + 10 $ <input class="answer-input" data-correct="25" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE42">Hint</button> <button class="idk" data-question="25 - 5 × 2 + 10">I don't know</button>
-                    <div id="hintE42" class="hint">Multiply first: $5 \times 2 = 10$. Then left to right: $25 - 10 = 15$, then $15 + 10 = 25$.</div>
+                    <span class="qnum">E42.</span> Calculate: $ 25 - 5 \\times 2 + 10 $ <input class="answer-input" data-correct="25" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE42">Hint</button> <button class="idk" data-question="25 - 5 × 2 + 10">I don't know</button>
+                    <div id="hintE42" class="hint">Multiply first: $5 \\times 2 = 10$. Then left to right: $25 - 10 = 15$, then $15 + 10 = 25$.</div>
                 `,
                 idkQuestion: "25 - 5 × 2 + 10"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E43.</span> Calculate: $ (7 + 1)^2 \div 8 $ <input class="answer-input" data-correct="8" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE43">Hint</button> <button class="idk" data-question="(7 + 1)^2 ÷ 8">I don't know</button>
-                    <div id="hintE43" class="hint">Brackets: $7 + 1 = 8$. Indices: $8^2 = 64$. Divide: $64 \div 8 = 8$.</div>
+                    <span class="qnum">E43.</span> Calculate: $ (7 + 1)^2 \\div 8 $ <input class="answer-input" data-correct="8" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE43">Hint</button> <button class="idk" data-question="(7 + 1)^2 ÷ 8">I don't know</button>
+                    <div id="hintE43" class="hint">Brackets: $7 + 1 = 8$. Indices: $8^2 = 64$. Divide: $64 \\div 8 = 8$.</div>
                 `,
                 idkQuestion: "(7 + 1)^2 ÷ 8"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E44.</span> Calculate: $ -10 \div 5 + 7 $ <input class="answer-input" data-correct="5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE44">Hint</button> <button class="idk" data-question="-10 ÷ 5 + 7">I don't know</button>
-                    <div id="hintE44" class="hint">Divide first: $-10 \div 5 = -2$. Then add: $-2 + 7 = 5$.</div>
+                    <span class="qnum">E44.</span> Calculate: $ -10 \\div 5 + 7 $ <input class="answer-input" data-correct="5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE44">Hint</button> <button class="idk" data-question="-10 ÷ 5 + 7">I don't know</button>
+                    <div id="hintE44" class="hint">Divide first: $-10 \\div 5 = -2$. Then add: $-2 + 7 = 5$.</div>
                 `,
                 idkQuestion: "-10 ÷ 5 + 7"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E45.</span> Calculate: $ 2 \times (-3) - (-4) $ <input class="answer-input" data-correct="-2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE45">Hint</button> <button class="idk" data-question="2 × (-3) - (-4)">I don't know</button>
-                    <div id="hintE45" class="hint">Multiply: $2 \times (-3) = -6$. Subtracting a negative is adding: $-6 - (-4) = -6 + 4 = -2$.</div>
+                    <span class="qnum">E45.</span> Calculate: $ 2 \\times (-3) - (-4) $ <input class="answer-input" data-correct="-2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE45">Hint</button> <button class="idk" data-question="2 × (-3) - (-4)">I don't know</button>
+                    <div id="hintE45" class="hint">Multiply: $2 \\times (-3) = -6$. Subtracting a negative is adding: $-6 - (-4) = -6 + 4 = -2$.</div>
                 `,
                 idkQuestion: "2 × (-3) - (-4)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E46.</span> Calculate: $ (12 - 2) \div 5 - 1 $ <input class="answer-input" data-correct="1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE46">Hint</button> <button class="idk" data-question="(12 - 2) ÷ 5 - 1">I don't know</button>
-                    <div id="hintE46" class="hint">Brackets: $12 - 2 = 10$. Divide: $10 \div 5 = 2$. Subtract: $2 - 1 = 1$.</div>
+                    <span class="qnum">E46.</span> Calculate: $ (12 - 2) \\div 5 - 1 $ <input class="answer-input" data-correct="1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE46">Hint</button> <button class="idk" data-question="(12 - 2) ÷ 5 - 1">I don't know</button>
+                    <div id="hintE46" class="hint">Brackets: $12 - 2 = 10$. Divide: $10 \\div 5 = 2$. Subtract: $2 - 1 = 1$.</div>
                 `,
                 idkQuestion: "(12 - 2) ÷ 5 - 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E47.</span> Calculate: $ 3 + 4^2 \div 2 $ <input class="answer-input" data-correct="11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE47">Hint</button> <button class="idk" data-question="3 + 4^2 ÷ 2">I don't know</button>
-                    <div id="hintE47" class="hint">Indices: $4^2 = 16$. Divide: $16 \div 2 = 8$. Add: $3 + 8 = 11$.</div>
+                    <span class="qnum">E47.</span> Calculate: $ 3 + 4^2 \\div 2 $ <input class="answer-input" data-correct="11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE47">Hint</button> <button class="idk" data-question="3 + 4^2 ÷ 2">I don't know</button>
+                    <div id="hintE47" class="hint">Indices: $4^2 = 16$. Divide: $16 \\div 2 = 8$. Add: $3 + 8 = 11$.</div>
                 `,
                 idkQuestion: "3 + 4^2 ÷ 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E48.</span> Calculate: $ 2 \times 5 + 10 \div 2 $ <input class="answer-input" data-correct="15" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE48">Hint</button> <button class="idk" data-question="2 × 5 + 10 ÷ 2">I don't know</button>
-                    <div id="hintE48" class="hint">Multiply: $2 \times 5 = 10$. Divide: $10 \div 2 = 5$. Add: $10 + 5 = 15$.</div>
+                    <span class="qnum">E48.</span> Calculate: $ 2 \\times 5 + 10 \\div 2 $ <input class="answer-input" data-correct="15" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE48">Hint</button> <button class="idk" data-question="2 × 5 + 10 ÷ 2">I don't know</button>
+                    <div id="hintE48" class="hint">Multiply: $2 \\times 5 = 10$. Divide: $10 \\div 2 = 5$. Add: $10 + 5 = 15$.</div>
                 `,
                 idkQuestion: "2 × 5 + 10 ÷ 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E49.</span> Calculate: $ (6 + 9) \div 3 \times 2 $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE49">Hint</button> <button class="idk" data-question="(6 + 9) ÷ 3 × 2">I don't know</button>
-                    <div id="hintE49" class="hint">Brackets: $6 + 9 = 15$. Divide: $15 \div 3 = 5$. Multiply: $5 \times 2 = 10$.</div>
+                    <span class="qnum">E49.</span> Calculate: $ (6 + 9) \\div 3 \\times 2 $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE49">Hint</button> <button class="idk" data-question="(6 + 9) ÷ 3 × 2">I don't know</button>
+                    <div id="hintE49" class="hint">Brackets: $6 + 9 = 15$. Divide: $15 \\div 3 = 5$. Multiply: $5 \\times 2 = 10$.</div>
                 `,
                 idkQuestion: "(6 + 9) ÷ 3 × 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E50.</span> Calculate: $ 4^3 - 20 \times 3 $ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE50">Hint</button> <button class="idk" data-question="4^3 - 20 × 3">I don't know</button>
-                    <div id="hintE50" class="hint">Indices: $4^3 = 64$. Multiply: $20 \times 3 = 60$. Subtract: $64 - 60 = 4$.</div>
+                    <span class="qnum">E50.</span> Calculate: $ 4^3 - 20 \\times 3 $ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE50">Hint</button> <button class="idk" data-question="4^3 - 20 × 3">I don't know</button>
+                    <div id="hintE50" class="hint">Indices: $4^3 = 64$. Multiply: $20 \\times 3 = 60$. Subtract: $64 - 60 = 4$.</div>
                 `,
                 idkQuestion: "4^3 - 20 × 3"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E51.</span> Calculate: $ 1/4 + 1/2 \times 2/3 $ <input class="answer-input" data-correct="0.58" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE51">Hint</button> <button class="idk" data-question="1/4 + 1/2 × 2/3">I don't know</button>
-                    <div id="hintE51" class="hint">Multiply: $1/2 \times 2/3 = 2/6 = 1/3$. Add: $1/4 + 1/3 = 3/12 + 4/12 = 7/12 \approx 0.58$.</div>
+                    <span class="qnum">E51.</span> Calculate: $ 1/4 + 1/2 \\times 2/3 $ <input class="answer-input" data-correct="0.58" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE51">Hint</button> <button class="idk" data-question="1/4 + 1/2 × 2/3">I don't know</button>
+                    <div id="hintE51" class="hint">Multiply: $1/2 \\times 2/3 = 2/6 = 1/3$. Add: $1/4 + 1/3 = 3/12 + 4/12 = 7/12 \\approx 0.58$.</div>
                 `,
                 idkQuestion: "1/4 + 1/2 × 2/3"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E52.</span> Calculate: $ (5 + 3) \times (10 - 5) $ <input class="answer-input" data-correct="40" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE52">Hint</button> <button class="idk" data-question="(5 + 3) × (10 - 5)">I don't know</button>
-                    <div id="hintE52" class="hint">Brackets: $5 + 3 = 8$, $10 - 5 = 5$. Multiply: $8 \times 5 = 40$.</div>
+                    <span class="qnum">E52.</span> Calculate: $ (5 + 3) \\times (10 - 5) $ <input class="answer-input" data-correct="40" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE52">Hint</button> <button class="idk" data-question="(5 + 3) × (10 - 5)">I don't know</button>
+                    <div id="hintE52" class="hint">Brackets: $5 + 3 = 8$, $10 - 5 = 5$. Multiply: $8 \\times 5 = 40$.</div>
                 `,
                 idkQuestion: "(5 + 3) × (10 - 5)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E53.</span> Calculate: $ 18 \div 9 - 4 \times (-1) $ <input class="answer-input" data-correct="6" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE53">Hint</button> <button class="idk" data-question="18 ÷ 9 - 4 × (-1)">I don't know</button>
-                    <div id="hintE53" class="hint">Divide: $18 \div 9 = 2$. Multiply: $4 \times (-1) = -4$. Subtract: $2 - (-4) = 2 + 4 = 6$.</div>
+                    <span class="qnum">E53.</span> Calculate: $ 18 \\div 9 - 4 \\times (-1) $ <input class="answer-input" data-correct="6" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE53">Hint</button> <button class="idk" data-question="18 ÷ 9 - 4 × (-1)">I don't know</button>
+                    <div id="hintE53" class="hint">Divide: $18 \\div 9 = 2$. Multiply: $4 \\times (-1) = -4$. Subtract: $2 - (-4) = 2 + 4 = 6$.</div>
                 `,
                 idkQuestion: "18 ÷ 9 - 4 × (-1)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E54.</span> Calculate: $ (-2)^2 + 3 \times (-5) $ <input class="answer-input" data-correct="-11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE54">Hint</button> <button class="idk" data-question="(-2)^2 + 3 × (-5)">I don't know</button>
-                    <div id="hintE54" class="hint">Indices: $(-2)^2 = 4$. Multiply: $3 \times (-5) = -15$. Add: $4 + (-15) = -11$.</div>
+                    <span class="qnum">E54.</span> Calculate: $ (-2)^2 + 3 \\times (-5) $ <input class="answer-input" data-correct="-11" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE54">Hint</button> <button class="idk" data-question="(-2)^2 + 3 × (-5)">I don't know</button>
+                    <div id="hintE54" class="hint">Indices: $(-2)^2 = 4$. Multiply: $3 \\times (-5) = -15$. Add: $4 + (-15) = -11$.</div>
                 `,
                 idkQuestion: "(-2)^2 + 3 × (-5)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E55.</span> Calculate: $ 24 \div (2 \times 4) + 1 $ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE55">Hint</button> <button class="idk" data-question="24 ÷ (2 × 4) + 1">I don't know</button>
-                    <div id="hintE55" class="hint">Brackets: $2 \times 4 = 8$. Divide: $24 \div 8 = 3$. Add: $3 + 1 = 4$.</div>
+                    <span class="qnum">E55.</span> Calculate: $ 24 \\div (2 \\times 4) + 1 $ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE55">Hint</button> <button class="idk" data-question="24 ÷ (2 × 4) + 1">I don't know</button>
+                    <div id="hintE55" class="hint">Brackets: $2 \\times 4 = 8$. Divide: $24 \\div 8 = 3$. Add: $3 + 1 = 4$.</div>
                 `,
                 idkQuestion: "24 ÷ (2 × 4) + 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E56.</span> Calculate: $ 7 + (3 - 8) \times 2 $ <input class="answer-input" data-correct="-3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE56">Hint</button> <button class="idk" data-question="7 + (3 - 8) × 2">I don't know</button>
-                    <div id="hintE56" class="hint">Brackets: $3 - 8 = -5$. Multiply: $(-5) \times 2 = -10$. Add: $7 + (-10) = -3$.</div>
+                    <span class="qnum">E56.</span> Calculate: $ 7 + (3 - 8) \\times 2 $ <input class="answer-input" data-correct="-3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE56">Hint</button> <button class="idk" data-question="7 + (3 - 8) × 2">I don't know</button>
+                    <div id="hintE56" class="hint">Brackets: $3 - 8 = -5$. Multiply: $(-5) \\times 2 = -10$. Add: $7 + (-10) = -3$.</div>
                 `,
                 idkQuestion: "7 + (3 - 8) × 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E57.</span> Calculate: $ 100 - 10^2 \div 2 $ <input class="answer-input" data-correct="50" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE57">Hint</button> <button class="idk" data-question="100 - 10^2 ÷ 2">I don't know</button>
-                    <div id="hintE57" class="hint">Indices: $10^2 = 100$. Divide: $100 \div 2 = 50$. Subtract: $100 - 50 = 50$.</div>
+                    <span class="qnum">E57.</span> Calculate: $ 100 - 10^2 \\div 2 $ <input class="answer-input" data-correct="50" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE57">Hint</button> <button class="idk" data-question="100 - 10^2 ÷ 2">I don't know</button>
+                    <div id="hintE57" class="hint">Indices: $10^2 = 100$. Divide: $100 \\div 2 = 50$. Subtract: $100 - 50 = 50$.</div>
                 `,
                 idkQuestion: "100 - 10^2 ÷ 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E58.</span> Calculate: $ 2.5 \times 4 - 5.5 $ <input class="answer-input" data-correct="4.5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE58">Hint</button> <button class="idk" data-question="2.5 × 4 - 5.5">I don't know</button>
-                    <div id="hintE58" class="hint">Multiply first: $2.5 \times 4 = 10$. Then subtract: $10 - 5.5 = 4.5$.</div>
+                    <span class="qnum">E58.</span> Calculate: $ 2.5 \\times 4 - 5.5 $ <input class="answer-input" data-correct="4.5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE58">Hint</button> <button class="idk" data-question="2.5 × 4 - 5.5">I don't know</button>
+                    <div id="hintE58" class="hint">Multiply first: $2.5 \\times 4 = 10$. Then subtract: $10 - 5.5 = 4.5$.</div>
                 `,
                 idkQuestion: "2.5 × 4 - 5.5"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E59.</span> Calculate: $ 12 + (-4) \times 3 $ <input class="answer-input" data-correct="0" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE59">Hint</button> <button class="idk" data-question="12 + (-4) × 3">I don't know</button>
-                    <div id="hintE59" class="hint">Multiply first: $(-4) \times 3 = -12$. Then add: $12 + (-12) = 0$.</div>
+                    <span class="qnum">E59.</span> Calculate: $ 12 + (-4) \\times 3 $ <input class="answer-input" data-correct="0" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE59">Hint</button> <button class="idk" data-question="12 + (-4) × 3">I don't know</button>
+                    <div id="hintE59" class="hint">Multiply first: $(-4) \\times 3 = -12$. Then add: $12 + (-12) = 0$.</div>
                 `,
                 idkQuestion: "12 + (-4) × 3"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E60.</span> Calculate: $ 1/2 \div 1/4 - 1 $ <input class="answer-input" data-correct="1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE60">Hint</button> <button class="idk" data-question="1/2 ÷ 1/4 - 1">I don't know</button>
-                    <div id="hintE60" class="hint">Divide (invert and multiply): $1/2 \div 1/4 = 1/2 \times 4/1 = 4/2 = 2$. Then subtract: $2 - 1 = 1$.</div>
+                    <span class="qnum">E60.</span> Calculate: $ 1/2 \\div 1/4 - 1 $ <input class="answer-input" data-correct="1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE60">Hint</button> <button class="idk" data-question="1/2 ÷ 1/4 - 1">I don't know</button>
+                    <div id="hintE60" class="hint">Divide (invert and multiply): $1/2 \\div 1/4 = 1/2 \\times 4/1 = 4/2 = 2$. Then subtract: $2 - 1 = 1$.</div>
                 `,
                 idkQuestion: "1/2 ÷ 1/4 - 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E61.</span> Calculate: $ (10 \div 2) + (3 \times 4) $ <input class="answer-input" data-correct="17" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE61">Hint</button> <button class="idk" data-question="(10 ÷ 2) + (3 × 4)">I don't know</button>
-                    <div id="hintE61" class="hint">Solve brackets: $10 \div 2 = 5$, $3 \times 4 = 12$. Add: $5 + 12 = 17$.</div>
+                    <span class="qnum">E61.</span> Calculate: $ (10 \\div 2) + (3 \\times 4) $ <input class="answer-input" data-correct="17" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE61">Hint</button> <button class="idk" data-question="(10 ÷ 2) + (3 × 4)">I don't know</button>
+                    <div id="hintE61" class="hint">Solve brackets: $10 \\div 2 = 5$, $3 \\times 4 = 12$. Add: $5 + 12 = 17$.</div>
                 `,
                 idkQuestion: "(10 ÷ 2) + (3 × 4)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E62.</span> Calculate: $ 5^2 - 3 \times 7 + 2 $ <input class="answer-input" data-correct="6" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE62">Hint</button> <button class="idk" data-question="5^2 - 3 × 7 + 2">I don't know</button>
-                    <div id="hintE62" class="hint">Indices: $5^2 = 25$. Multiply: $3 \times 7 = 21$. Left to right: $25 - 21 = 4$, then $4 + 2 = 6$.</div>
+                    <span class="qnum">E62.</span> Calculate: $ 5^2 - 3 \\times 7 + 2 $ <input class="answer-input" data-correct="6" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE62">Hint</button> <button class="idk" data-question="5^2 - 3 × 7 + 2">I don't know</button>
+                    <div id="hintE62" class="hint">Indices: $5^2 = 25$. Multiply: $3 \\times 7 = 21$. Left to right: $25 - 21 = 4$, then $4 + 2 = 6$.</div>
                 `,
                 idkQuestion: "5^2 - 3 × 7 + 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E63.</span> Calculate: $ 4 \times (10 - 2^3) $ <input class="answer-input" data-correct="8" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE63">Hint</button> <button class="idk" data-question="4 × (10 - 2^3)">I don't know</button>
-                    <div id="hintE63" class="hint">Inside brackets: Indices $2^3 = 8$. Then $10 - 8 = 2$. Multiply: $4 \times 2 = 8$.</div>
+                    <span class="qnum">E63.</span> Calculate: $ 4 \\times (10 - 2^3) $ <input class="answer-input" data-correct="8" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE63">Hint</button> <button class="idk" data-question="4 × (10 - 2^3)">I don't know</button>
+                    <div id="hintE63" class="hint">Inside brackets: Indices $2^3 = 8$. Then $10 - 8 = 2$. Multiply: $4 \\times 2 = 8$.</div>
                 `,
                 idkQuestion: "4 × (10 - 2^3)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E64.</span> Calculate: $ -15 + 3 \times 4 $ <input class="answer-input" data-correct="-3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE64">Hint</button> <button class="idk" data-question="-15 + 3 × 4">I don't know</button>
-                    <div id="hintE64" class="hint">Multiply first: $3 \times 4 = 12$. Then add: $-15 + 12 = -3$.</div>
+                    <span class="qnum">E64.</span> Calculate: $ -15 + 3 \\times 4 $ <input class="answer-input" data-correct="-3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE64">Hint</button> <button class="idk" data-question="-15 + 3 × 4">I don't know</button>
+                    <div id="hintE64" class="hint">Multiply first: $3 \\times 4 = 12$. Then add: $-15 + 12 = -3$.</div>
                 `,
                 idkQuestion: "-15 + 3 × 4"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E65.</span> Calculate: $ (7 + 5) \div (-4) $ <input class="answer-input" data-correct="-3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE65">Hint</button> <button class="idk" data-question="(7 + 5) ÷ (-4)">I don't know</button>
-                    <div id="hintE65" class="hint">Brackets: $7 + 5 = 12$. Divide: $12 \div (-4) = -3$.</div>
+                    <span class="qnum">E65.</span> Calculate: $ (7 + 5) \\div (-4) $ <input class="answer-input" data-correct="-3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE65">Hint</button> <button class="idk" data-question="(7 + 5) ÷ (-4)">I don't know</button>
+                    <div id="hintE65" class="hint">Brackets: $7 + 5 = 12$. Divide: $12 \\div (-4) = -3$.</div>
                 `,
                 idkQuestion: "(7 + 5) ÷ (-4)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E66.</span> Calculate: $ 1/2 + 1/2 \times 0 $ <input class="answer-input" data-correct="0.5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE66">Hint</button> <button class="idk" data-question="1/2 + 1/2 × 0">I don't know</button>
-                    <div id="hintE66" class="hint">Multiply first: $1/2 \times 0 = 0$. Then add: $1/2 + 0 = 1/2 = 0.5$.</div>
+                    <span class="qnum">E66.</span> Calculate: $ 1/2 + 1/2 \\times 0 $ <input class="answer-input" data-correct="0.5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE66">Hint</button> <button class="idk" data-question="1/2 + 1/2 × 0">I don't know</button>
+                    <div id="hintE66" class="hint">Multiply first: $1/2 \\times 0 = 0$. Then add: $1/2 + 0 = 1/2 = 0.5$.</div>
                 `,
                 idkQuestion: "1/2 + 1/2 × 0"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E67.</span> Calculate: $ 5 \times (6 - 2) \div 10 $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE67">Hint</button> <button class="idk" data-question="5 × (6 - 2) ÷ 10">I don't know</button>
-                    <div id="hintE67" class="hint">Brackets: $6 - 2 = 4$. Then left to right multiply/divide: $5 \times 4 = 20$, then $20 \div 10 = 2$.</div>
+                    <span class="qnum">E67.</span> Calculate: $ 5 \\times (6 - 2) \\div 10 $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE67">Hint</button> <button class="idk" data-question="5 × (6 - 2) ÷ 10">I don't know</button>
+                    <div id="hintE67" class="hint">Brackets: $6 - 2 = 4$. Then left to right multiply/divide: $5 \\times 4 = 20$, then $20 \\div 10 = 2$.</div>
                 `,
                 idkQuestion: "5 × (6 - 2) ÷ 10"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E68.</span> Calculate: $ (8 - 2) + 3 \times 5 $ <input class="answer-input" data-correct="21" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE68">Hint</button> <button class="idk" data-question="(8 - 2) + 3 × 5">I don't know</button>
-                    <div id="hintE68" class="hint">Brackets: $8 - 2 = 6$. Multiply: $3 \times 5 = 15$. Add: $6 + 15 = 21$.</div>
+                    <span class="qnum">E68.</span> Calculate: $ (8 - 2) + 3 \\times 5 $ <input class="answer-input" data-correct="21" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE68">Hint</button> <button class="idk" data-question="(8 - 2) + 3 × 5">I don't know</button>
+                    <div id="hintE68" class="hint">Brackets: $8 - 2 = 6$. Multiply: $3 \\times 5 = 15$. Add: $6 + 15 = 21$.</div>
                 `,
                 idkQuestion: "(8 - 2) + 3 × 5"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E69.</span> Calculate: $ 3^3 - 7 \times 2 $ <input class="answer-input" data-correct="13" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE69">Hint</button> <button class="idk" data-question="3^3 - 7 × 2">I don't know</button>
-                    <div id="hintE69" class="hint">Indices: $3^3 = 27$. Multiply: $7 \times 2 = 14$. Subtract: $27 - 14 = 13$.</div>
+                    <span class="qnum">E69.</span> Calculate: $ 3^3 - 7 \\times 2 $ <input class="answer-input" data-correct="13" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE69">Hint</button> <button class="idk" data-question="3^3 - 7 × 2">I don't know</button>
+                    <div id="hintE69" class="hint">Indices: $3^3 = 27$. Multiply: $7 \\times 2 = 14$. Subtract: $27 - 14 = 13$.</div>
                 `,
                 idkQuestion: "3^3 - 7 × 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E70.</span> Calculate: $ 10 - (-5) \times 2 $ <input class="answer-input" data-correct="20" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE70">Hint</button> <button class="idk" data-question="10 - (-5) × 2">I don't know</button>
-                    <div id="hintE70" class="hint">Multiply first: $(-5) \times 2 = -10$. Subtracting a negative is adding: $10 - (-10) = 10 + 10 = 20$.</div>
+                    <span class="qnum">E70.</span> Calculate: $ 10 - (-5) \\times 2 $ <input class="answer-input" data-correct="20" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE70">Hint</button> <button class="idk" data-question="10 - (-5) × 2">I don't know</button>
+                    <div id="hintE70" class="hint">Multiply first: $(-5) \\times 2 = -10$. Subtracting a negative is adding: $10 - (-10) = 10 + 10 = 20$.</div>
                 `,
                 idkQuestion: "10 - (-5) × 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E71.</span> Calculate: $ 20 \div 4 - 3 + 1 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE71">Hint</button> <button class="idk" data-question="20 ÷ 4 - 3 + 1">I don't know</button>
-                    <div id="hintE71" class="hint">Divide: $20 \div 4 = 5$. Then left to right: $5 - 3 = 2$, then $2 + 1 = 3$.</div>
+                    <span class="qnum">E71.</span> Calculate: $ 20 \\div 4 - 3 + 1 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE71">Hint</button> <button class="idk" data-question="20 ÷ 4 - 3 + 1">I don't know</button>
+                    <div id="hintE71" class="hint">Divide: $20 \\div 4 = 5$. Then left to right: $5 - 3 = 2$, then $2 + 1 = 3$.</div>
                 `,
                 idkQuestion: "20 ÷ 4 - 3 + 1"
             },
@@ -825,120 +828,120 @@
             },
             {
                 questionHtml: `
-                    <span class="qnum">E73.</span> Calculate: $ 6 + 2 \times (1 - 5) $ <input class="answer-input" data-correct="-2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE73">Hint</button> <button class="idk" data-question="6 + 2 × (1 - 5)">I don't know</button>
-                    <div id="hintE73" class="hint">Brackets: $1 - 5 = -4$. Multiply: $2 \times (-4) = -8$. Add: $6 + (-8) = -2$.</div>
+                    <span class="qnum">E73.</span> Calculate: $ 6 + 2 \\times (1 - 5) $ <input class="answer-input" data-correct="-2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE73">Hint</button> <button class="idk" data-question="6 + 2 × (1 - 5)">I don't know</button>
+                    <div id="hintE73" class="hint">Brackets: $1 - 5 = -4$. Multiply: $2 \\times (-4) = -8$. Add: $6 + (-8) = -2$.</div>
                 `,
                 idkQuestion: "6 + 2 × (1 - 5)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E74.</span> Calculate: $ 30 \div (-5) + 2 $ <input class="answer-input" data-correct="-4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE74">Hint</button> <button class="idk" data-question="30 ÷ (-5) + 2">I don't know</button>
-                    <div id="hintE74" class="hint">Divide: $30 \div (-5) = -6$. Add: $-6 + 2 = -4$.</div>
+                    <span class="qnum">E74.</span> Calculate: $ 30 \\div (-5) + 2 $ <input class="answer-input" data-correct="-4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE74">Hint</button> <button class="idk" data-question="30 ÷ (-5) + 2">I don't know</button>
+                    <div id="hintE74" class="hint">Divide: $30 \\div (-5) = -6$. Add: $-6 + 2 = -4$.</div>
                 `,
                 idkQuestion: "30 ÷ (-5) + 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E75.</span> Calculate: $ (7 - 2)^2 \times 3 $ <input class="answer-input" data-correct="75" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE75">Hint</button> <button class="idk" data-question="(7 - 2)^2 × 3">I don't know</button>
-                    <div id="hintE75" class="hint">Brackets: $7 - 2 = 5$. Indices: $5^2 = 25$. Multiply: $25 \times 3 = 75$.</div>
+                    <span class="qnum">E75.</span> Calculate: $ (7 - 2)^2 \\times 3 $ <input class="answer-input" data-correct="75" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE75">Hint</button> <button class="idk" data-question="(7 - 2)^2 × 3">I don't know</button>
+                    <div id="hintE75" class="hint">Brackets: $7 - 2 = 5$. Indices: $5^2 = 25$. Multiply: $25 \\times 3 = 75$.</div>
                 `,
                 idkQuestion: "(7 - 2)^2 × 3"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E76.</span> Calculate: $ 1.0 + 0.5 \times 4 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE76">Hint</button> <button class="idk" data-question="1.0 + 0.5 × 4">I don't know</button>
-                    <div id="hintE76" class="hint">Multiply first: $0.5 \times 4 = 2$. Then add: $1.0 + 2 = 3$.</div>
+                    <span class="qnum">E76.</span> Calculate: $ 1.0 + 0.5 \\times 4 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE76">Hint</button> <button class="idk" data-question="1.0 + 0.5 × 4">I don't know</button>
+                    <div id="hintE76" class="hint">Multiply first: $0.5 \\times 4 = 2$. Then add: $1.0 + 2 = 3$.</div>
                 `,
                 idkQuestion: "1.0 + 0.5 × 4"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E77.</span> Calculate: $ 1/3 \times (9 - 3) $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE77">Hint</button> <button class="idk" data-question="1/3 × (9 - 3)">I don't know</button>
-                    <div id="hintE77" class="hint">Brackets: $9 - 3 = 6$. Multiply: $1/3 \times 6 = 2$.</div>
+                    <span class="qnum">E77.</span> Calculate: $ 1/3 \\times (9 - 3) $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE77">Hint</button> <button class="idk" data-question="1/3 × (9 - 3)">I don't know</button>
+                    <div id="hintE77" class="hint">Brackets: $9 - 3 = 6$. Multiply: $1/3 \\times 6 = 2$.</div>
                 `,
                 idkQuestion: "1/3 × (9 - 3)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E78.</span> Calculate: $ 11 - 3 + 2 \times 5 $ <input class="answer-input" data-correct="18" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE78">Hint</button> <button class="idk" data-question="11 - 3 + 2 × 5">I don't know</button>
-                    <div id="hintE78" class="hint">Multiply first: $2 \times 5 = 10$. Then left to right: $11 - 3 = 8$, then $8 + 10 = 18$.</div>
+                    <span class="qnum">E78.</span> Calculate: $ 11 - 3 + 2 \\times 5 $ <input class="answer-input" data-correct="18" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE78">Hint</button> <button class="idk" data-question="11 - 3 + 2 × 5">I don't know</button>
+                    <div id="hintE78" class="hint">Multiply first: $2 \\times 5 = 10$. Then left to right: $11 - 3 = 8$, then $8 + 10 = 18$.</div>
                 `,
                 idkQuestion: "11 - 3 + 2 × 5"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E79.</span> Calculate: $ (10 + 6) \div 2^2 $ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE79">Hint</button> <button class="idk" data-question="(10 + 6) ÷ 2^2">I don't know</button>
-                    <div id="hintE79" class="hint">Brackets: $10 + 6 = 16$. Indices: $2^2 = 4$. Divide: $16 \div 4 = 4$.</div>
+                    <span class="qnum">E79.</span> Calculate: $ (10 + 6) \\div 2^2 $ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE79">Hint</button> <button class="idk" data-question="(10 + 6) ÷ 2^2">I don't know</button>
+                    <div id="hintE79" class="hint">Brackets: $10 + 6 = 16$. Indices: $2^2 = 4$. Divide: $16 \\div 4 = 4$.</div>
                 `,
                 idkQuestion: "(10 + 6) ÷ 2^2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E80.</span> Calculate: $ -8 \div (-2) - 1 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE80">Hint</button> <button class="idk" data-question="-8 ÷ (-2) - 1">I don't know</button>
-                    <div id="hintE80" class="hint">Divide first: $-8 \div (-2) = 4$. Subtract: $4 - 1 = 3$.</div>
+                    <span class="qnum">E80.</span> Calculate: $ -8 \\div (-2) - 1 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE80">Hint</button> <button class="idk" data-question="-8 ÷ (-2) - 1">I don't know</button>
+                    <div id="hintE80" class="hint">Divide first: $-8 \\div (-2) = 4$. Subtract: $4 - 1 = 3$.</div>
                 `,
                 idkQuestion: "-8 ÷ (-2) - 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E81.</span> Calculate: $ 5 \times 2 + 8 \div 4 - 3 $ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE81">Hint</button> <button class="idk" data-question="5 × 2 + 8 ÷ 4 - 3">I don't know</button>
-                    <div id="hintE81" class="hint">Multiply: $5 \times 2 = 10$. Divide: $8 \div 4 = 2$. Left to right: $10 + 2 - 3 = 12 - 3 = 9$.</div>
+                    <span class="qnum">E81.</span> Calculate: $ 5 \\times 2 + 8 \\div 4 - 3 $ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE81">Hint</button> <button class="idk" data-question="5 × 2 + 8 ÷ 4 - 3">I don't know</button>
+                    <div id="hintE81" class="hint">Multiply: $5 \\times 2 = 10$. Divide: $8 \\div 4 = 2$. Left to right: $10 + 2 - 3 = 12 - 3 = 9$.</div>
                 `,
                 idkQuestion: "5 × 2 + 8 ÷ 4 - 3"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E82.</span> Calculate: $ (9 - 6)^2 + 2 \times 5 $ <input class="answer-input" data-correct="19" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE82">Hint</button> <button class="idk" data-question="(9 - 6)^2 + 2 × 5">I don't know</button>
-                    <div id="hintE82" class="hint">Brackets: $9 - 6 = 3$. Indices: $3^2 = 9$. Multiply: $2 \times 5 = 10$. Add: $9 + 10 = 19$.</div>
+                    <span class="qnum">E82.</span> Calculate: $ (9 - 6)^2 + 2 \\times 5 $ <input class="answer-input" data-correct="19" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE82">Hint</button> <button class="idk" data-question="(9 - 6)^2 + 2 × 5">I don't know</button>
+                    <div id="hintE82" class="hint">Brackets: $9 - 6 = 3$. Indices: $3^2 = 9$. Multiply: $2 \\times 5 = 10$. Add: $9 + 10 = 19$.</div>
                 `,
                 idkQuestion: "(9 - 6)^2 + 2 × 5"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E83.</span> Calculate: $ 10 - 2 \times (1 + 3) $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE83">Hint</button> <button class="idk" data-question="10 - 2 × (1 + 3)">I don't know</button>
-                    <div id="hintE83" class="hint">Brackets: $1 + 3 = 4$. Multiply: $2 \times 4 = 8$. Subtract: $10 - 8 = 2$.</div>
+                    <span class="qnum">E83.</span> Calculate: $ 10 - 2 \\times (1 + 3) $ <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE83">Hint</button> <button class="idk" data-question="10 - 2 × (1 + 3)">I don't know</button>
+                    <div id="hintE83" class="hint">Brackets: $1 + 3 = 4$. Multiply: $2 \\times 4 = 8$. Subtract: $10 - 8 = 2$.</div>
                 `,
                 idkQuestion: "10 - 2 × (1 + 3)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E84.</span> Calculate: $ 1/2 \times 6 - 3/2 $ <input class="answer-input" data-correct="1.5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE84">Hint</button> <button class="idk" data-question="1/2 × 6 - 3/2">I don't know</button>
-                    <div id="hintE84" class="hint">Multiply: $1/2 \times 6 = 3$. Subtract: $3 - 3/2 = 3 - 1.5 = 1.5$.</div>
+                    <span class="qnum">E84.</span> Calculate: $ 1/2 \\times 6 - 3/2 $ <input class="answer-input" data-correct="1.5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE84">Hint</button> <button class="idk" data-question="1/2 × 6 - 3/2">I don't know</button>
+                    <div id="hintE84" class="hint">Multiply: $1/2 \\times 6 = 3$. Subtract: $3 - 3/2 = 3 - 1.5 = 1.5$.</div>
                 `,
                 idkQuestion: "1/2 × 6 - 3/2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E85.</span> Calculate: $ (20 \div 5) + (3 \times 2) $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE85">Hint</button> <button class="idk" data-question="(20 ÷ 5) + (3 × 2)">I don't know</button>
-                    <div id="hintE85" class="hint">Brackets: $20 \div 5 = 4$, $3 \times 2 = 6$. Add: $4 + 6 = 10$.</div>
+                    <span class="qnum">E85.</span> Calculate: $ (20 \\div 5) + (3 \\times 2) $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE85">Hint</button> <button class="idk" data-question="(20 ÷ 5) + (3 × 2)">I don't know</button>
+                    <div id="hintE85" class="hint">Brackets: $20 \\div 5 = 4$, $3 \\times 2 = 6$. Add: $4 + 6 = 10$.</div>
                 `,
                 idkQuestion: "(20 ÷ 5) + (3 × 2)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E86.</span> Calculate: $ 4^2 + 2 \times (-3) $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE86">Hint</button> <button class="idk" data-question="4^2 + 2 × (-3)">I don't know</button>
-                    <div id="hintE86" class="hint">Indices: $4^2 = 16$. Multiply: $2 \times (-3) = -6$. Add: $16 + (-6) = 10$.</div>
+                    <span class="qnum">E86.</span> Calculate: $ 4^2 + 2 \\times (-3) $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE86">Hint</button> <button class="idk" data-question="4^2 + 2 × (-3)">I don't know</button>
+                    <div id="hintE86" class="hint">Indices: $4^2 = 16$. Multiply: $2 \\times (-3) = -6$. Add: $16 + (-6) = 10$.</div>
                 `,
                 idkQuestion: "4^2 + 2 × (-3)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E87.</span> Calculate: $ 25 - (10 - 2) \times 2 $ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE87">Hint</button> <button class="idk" data-question="25 - (10 - 2) × 2">I don't know</button>
-                    <div id="hintE87" class="hint">Brackets: $10 - 2 = 8$. Multiply: $8 \times 2 = 16$. Subtract: $25 - 16 = 9$.</div>
+                    <span class="qnum">E87.</span> Calculate: $ 25 - (10 - 2) \\times 2 $ <input class="answer-input" data-correct="9" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE87">Hint</button> <button class="idk" data-question="25 - (10 - 2) × 2">I don't know</button>
+                    <div id="hintE87" class="hint">Brackets: $10 - 2 = 8$. Multiply: $8 \\times 2 = 16$. Subtract: $25 - 16 = 9$.</div>
                 `,
                 idkQuestion: "25 - (10 - 2) × 2"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E88.</span> Calculate: $ -12 + (-3) \times (-4) $ <input class="answer-input" data-correct="0" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE88">Hint</button> <button class="idk" data-question="-12 + (-3) × (-4)">I don't know</button>
-                    <div id="hintE88" class="hint">Multiply first: $(-3) \times (-4) = 12$. Add: $-12 + 12 = 0$.</div>
+                    <span class="qnum">E88.</span> Calculate: $ -12 + (-3) \\times (-4) $ <input class="answer-input" data-correct="0" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE88">Hint</button> <button class="idk" data-question="-12 + (-3) × (-4)">I don't know</button>
+                    <div id="hintE88" class="hint">Multiply first: $(-3) \\times (-4) = 12$. Add: $-12 + 12 = 0$.</div>
                 `,
                 idkQuestion: "-12 + (-3) × (-4)"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E89.</span> Calculate: $ (10 + 5) \div (3 - 0) $ <input class="answer-input" data-correct="5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE89">Hint</button> <button class="idk" data-question="(10 + 5) ÷ (3 - 0)">I don't know</button>
-                    <div id="hintE89" class="hint">Brackets: $10 + 5 = 15$, $3 - 0 = 3$. Divide: $15 \div 3 = 5$.</div>
+                    <span class="qnum">E89.</span> Calculate: $ (10 + 5) \\div (3 - 0) $ <input class="answer-input" data-correct="5" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE89">Hint</button> <button class="idk" data-question="(10 + 5) ÷ (3 - 0)">I don't know</button>
+                    <div id="hintE89" class="hint">Brackets: $10 + 5 = 15$, $3 - 0 = 3$. Divide: $15 \\div 3 = 5$.</div>
                 `,
                 idkQuestion: "(10 + 5) ÷ (3 - 0)"
             },
@@ -951,15 +954,15 @@
             },
             {
                 questionHtml: `
-                    <span class="qnum">E91.</span> Calculate: $ 3 \times (4 - 2) + 7 $ <input class="answer-input" data-correct="13" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE91">Hint</button> <button class="idk" data-question="3 × (4 - 2) + 7">I don't know</button>
-                    <div id="hintE91" class="hint">Brackets: $4 - 2 = 2$. Multiply: $3 \times 2 = 6$. Add: $6 + 7 = 13$.</div>
+                    <span class="qnum">E91.</span> Calculate: $ 3 \\times (4 - 2) + 7 $ <input class="answer-input" data-correct="13" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE91">Hint</button> <button class="idk" data-question="3 × (4 - 2) + 7">I don't know</button>
+                    <div id="hintE91" class="hint">Brackets: $4 - 2 = 2$. Multiply: $3 \\times 2 = 6$. Add: $6 + 7 = 13$.</div>
                 `,
                 idkQuestion: "3 × (4 - 2) + 7"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E92.</span> Calculate: $ 16 \div (8 - 4) \times 2 $ <input class="answer-input" data-correct="8" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE92">Hint</button> <button class="idk" data-question="16 ÷ (8 - 4) × 2">I don't know</button>
-                    <div id="hintE92" class="hint">Brackets: $8 - 4 = 4$. Left to right: $16 \div 4 = 4$, then $4 \times 2 = 8$.</div>
+                    <span class="qnum">E92.</span> Calculate: $ 16 \\div (8 - 4) \\times 2 $ <input class="answer-input" data-correct="8" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE92">Hint</button> <button class="idk" data-question="16 ÷ (8 - 4) × 2">I don't know</button>
+                    <div id="hintE92" class="hint">Brackets: $8 - 4 = 4$. Left to right: $16 \\div 4 = 4$, then $4 \\times 2 = 8$.</div>
                 `,
                 idkQuestion: "16 ÷ (8 - 4) × 2"
             },
@@ -972,50 +975,50 @@
             },
             {
                 questionHtml: `
-                    <span class="qnum">E94.</span> Calculate: $ (5 + 2) \times 3 - 4 $ <input class="answer-input" data-correct="17" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE94">Hint</button> <button class="idk" data-question="(5 + 2) × 3 - 4">I don't know</button>
-                    <div id="hintE94" class="hint">Brackets first: $5 + 2 = 7$. Multiply: $7 \times 3 = 21$. Subtract: $21 - 4 = 17$.</div>
+                    <span class="qnum">E94.</span> Calculate: $ (5 + 2) \\times 3 - 4 $ <input class="answer-input" data-correct="17" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE94">Hint</button> <button class="idk" data-question="(5 + 2) × 3 - 4">I don't know</button>
+                    <div id="hintE94" class="hint">Brackets first: $5 + 2 = 7$. Multiply: $7 \\times 3 = 21$. Subtract: $21 - 4 = 17$.</div>
                 `,
                 idkQuestion: "(5 + 2) × 3 - 4"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E95.</span> Calculate: $ 10 \div (8 - 3) + 6 $ <input class="answer-input" data-correct="8" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE95">Hint</button> <button class="idk" data-question="10 ÷ (8 - 3) + 6">I don't know</button>
-                    <div id="hintE95" class="hint">Brackets first: $8 - 3 = 5$. Divide: $10 \div 5 = 2$. Add: $2 + 6 = 8$.</div>
+                    <span class="qnum">E95.</span> Calculate: $ 10 \\div (8 - 3) + 6 $ <input class="answer-input" data-correct="8" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE95">Hint</button> <button class="idk" data-question="10 ÷ (8 - 3) + 6">I don't know</button>
+                    <div id="hintE95" class="hint">Brackets first: $8 - 3 = 5$. Divide: $10 \\div 5 = 2$. Add: $2 + 6 = 8$.</div>
                 `,
                 idkQuestion: "10 ÷ (8 - 3) + 6"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E96.</span> Calculate: $ 2^2 + 3 \times 5 - 1 $ <input class="answer-input" data-correct="18" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE96">Hint</button> <button class="idk" data-question="2^2 + 3 × 5 - 1">I don't know</button>
-                    <div id="hintE96" class="hint">Indices: $2^2 = 4$. Multiply: $3 \times 5 = 15$. Left to right: $4 + 15 = 19$, then $19 - 1 = 18$.</div>
+                    <span class="qnum">E96.</span> Calculate: $ 2^2 + 3 \\times 5 - 1 $ <input class="answer-input" data-correct="18" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE96">Hint</button> <button class="idk" data-question="2^2 + 3 × 5 - 1">I don't know</button>
+                    <div id="hintE96" class="hint">Indices: $2^2 = 4$. Multiply: $3 \\times 5 = 15$. Left to right: $4 + 15 = 19$, then $19 - 1 = 18$.</div>
                 `,
                 idkQuestion: "2^2 + 3 × 5 - 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E97.</span> Calculate: $ 15 - 5 \times (-2) + 3 $ <input class="answer-input" data-correct="28" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE97">Hint</button> <button class="idk" data-question="15 - 5 × (-2) + 3">I don't know</button>
-                    <div id="hintE97" class="hint">Multiply: $5 \times (-2) = -10$. Left to right: $15 - (-10) = 15 + 10 = 25$, then $25 + 3 = 28$.</div>
+                    <span class="qnum">E97.</span> Calculate: $ 15 - 5 \\times (-2) + 3 $ <input class="answer-input" data-correct="28" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE97">Hint</button> <button class="idk" data-question="15 - 5 × (-2) + 3">I don't know</button>
+                    <div id="hintE97" class="hint">Multiply: $5 \\times (-2) = -10$. Left to right: $15 - (-10) = 15 + 10 = 25$, then $25 + 3 = 28$.</div>
                 `,
                 idkQuestion: "15 - 5 × (-2) + 3"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E98.</span> Calculate: $ 40 \div (2 \times 5) - 1 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE98">Hint</button> <button class="idk" data-question="40 ÷ (2 × 5) - 1">I don't know</button>
-                    <div id="hintE98" class="hint">Brackets: $2 \times 5 = 10$. Divide: $40 \div 10 = 4$. Subtract: $4 - 1 = 3$.</div>
+                    <span class="qnum">E98.</span> Calculate: $ 40 \\div (2 \\times 5) - 1 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE98">Hint</button> <button class="idk" data-question="40 ÷ (2 × 5) - 1">I don't know</button>
+                    <div id="hintE98" class="hint">Brackets: $2 \\times 5 = 10$. Divide: $40 \\div 10 = 4$. Subtract: $4 - 1 = 3$.</div>
                 `,
                 idkQuestion: "40 ÷ (2 × 5) - 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E99.</span> Calculate: $ 8 + 6 \div (-2) - 1 $ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE99">Hint</button> <button class="idk" data-question="8 + 6 ÷ (-2) - 1">I don't know</button>
-                    <div id="hintE99" class="hint">Divide: $6 \div (-2) = -3$. Left to right: $8 + (-3) = 5$, then $5 - 1 = 4$.</div>
+                    <span class="qnum">E99.</span> Calculate: $ 8 + 6 \\div (-2) - 1 $ <input class="answer-input" data-correct="4" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE99">Hint</button> <button class="idk" data-question="8 + 6 ÷ (-2) - 1">I don't know</button>
+                    <div id="hintE99" class="hint">Divide: $6 \\div (-2) = -3$. Left to right: $8 + (-3) = 5$, then $5 - 1 = 4$.</div>
                 `,
                 idkQuestion: "8 + 6 ÷ (-2) - 1"
             },
             {
                 questionHtml: `
-                    <span class="qnum">E100.</span> Calculate: $ (9 - 3) \times (1 + 2) \div 6 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE100">Hint</button> <button class="idk" data-question="(9 - 3) × (1 + 2) ÷ 6">I don't know</button>
-                    <div id="hintE100" class="hint">Brackets: $9 - 3 = 6$, $1 + 2 = 3$. Left to right: $6 \times 3 = 18$, then $18 \div 6 = 3$.</div>
+                    <span class="qnum">E100.</span> Calculate: $ (9 - 3) \\times (1 + 2) \\div 6 $ <input class="answer-input" data-correct="3" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE100">Hint</button> <button class="idk" data-question="(9 - 3) × (1 + 2) ÷ 6">I don't know</button>
+                    <div id="hintE100" class="hint">Brackets: $9 - 3 = 6$, $1 + 2 = 3$. Left to right: $6 \\times 3 = 18$, then $18 \\div 6 = 3$.</div>
                 `,
                 idkQuestion: "(9 - 3) × (1 + 2) ÷ 6"
             }
@@ -1207,6 +1210,7 @@
             shards = 0;
             currentLevel = 0;
             struggledQuestions.clear();
+            incorrectlyAnsweredQuestions.clear(); // New: Clear incorrect answers on reset
             addedEquationCount = 0;
             document.getElementById('progress-shards').textContent = shards;
             document.getElementById('adventure-level').textContent = levels[0];
@@ -1238,27 +1242,54 @@
 
         function shareReport() {
             const struggledList = struggledQuestions.size > 0 ? Array.from(struggledQuestions).join('; ') : 'None';
-            const report = `Total Shards: ${shards}\nAdventure Level: ${levels[currentLevel]}\nDaily Check-in Streak: 0\nMastery Badges: 🏆\nAreas to Re-Explore: ${struggledList}`;
+            let incorrectAnswersReport = '';
+            if (incorrectlyAnsweredQuestions.size > 0) {
+                incorrectAnswersReport += '\n\nEquations with Incorrect Attempts:\n';
+                incorrectlyAnsweredQuestions.forEach((details, question) => {
+                    incorrectAnswersReport += `- Question: ${question}\n  Your Answer: ${details.wrongAnswer}\n  Correct Answer: ${details.correctAnswer}\n`;
+                });
+            }
+
+            const report = `Total Shards: ${shards}\nAdventure Level: ${levels[currentLevel]}\nDaily Check-in Streak: 0\nMastery Badges: 🏆\nAreas to Re-Explore (needed hint or "I don't know"): ${struggledList}${incorrectAnswersReport}`;
             window.location.href = `mailto:trev2005+bilmas@gmail.com?subject=Dora's BIDMAS Report&body=${encodeURIComponent(report)}`;
         }
 
         // Update the displayed Areas to Re-Explore in real-time
         function updateAreasToReExploreDisplay() {
             const struggledList = struggledQuestions.size > 0 ? Array.from(struggledQuestions).join('; ') : 'None';
-            document.getElementById('areas-to-re-explore').textContent = struggledList;
+            const incorrectCount = incorrectlyAnsweredQuestions.size;
+            let combinedReportText = '';
+
+            if (struggledList !== 'None') {
+                combinedReportText += `Needed Hints/IDK: ${struggledList}`;
+            }
+            if (incorrectCount > 0) {
+                if (combinedReportText !== '') {
+                    combinedReportText += '; ';
+                }
+                combinedReportText += `Incorrect Attempts: ${incorrectCount} questions.`;
+            }
+
+            if (combinedReportText === '') {
+                combinedReportText = 'None';
+            }
+            document.getElementById('areas-to-re-explore').textContent = combinedReportText;
         }
 
         // Call this function whenever a question is added to struggledQuestions
-        const originalAdd = struggledQuestions.add;
+        const originalAddStruggled = struggledQuestions.add;
         struggledQuestions.add = function(item) {
-            originalAdd.apply(this, arguments);
+            originalAddStruggled.apply(this, arguments);
             updateAreasToReExploreDisplay();
         };
-        const originalClear = struggledQuestions.clear;
+        const originalClearStruggled = struggledQuestions.clear;
         struggledQuestions.clear = function() {
-            originalClear.apply(this, arguments);
+            originalClearStruggled.apply(this, arguments);
             updateAreasToReExploreDisplay();
         };
+        // No need for a custom setter for incorrectlyAnsweredQuestions.set and .delete,
+        // as checkAnswer already calls updateAreasToReExploreDisplay after modifying it.
+
 
         // Fix the incorrect data-correct value for question with value="7" (Emily's shopping)
         document.addEventListener('DOMContentLoaded', () => {
