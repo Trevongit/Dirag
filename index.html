@@ -106,8 +106,10 @@
         <p>Mastery Badges: 🏆</p>
         <p>Areas to Re-Explore (Needed Hint/IDK): <span id="summary-hints-idk">None</span> 🚧</p>
         <p>Areas to Re-Explore (Incorrect Attempts): <span id="summary-incorrect">None</span> 🚫</p>
-        <p><strong>Full Report Content (for Email):</strong>
-            <button onclick="shareReport()" style="margin-left: 10px; background-color: #add8e6; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer;">Submit Report via Email 📧</button>
+        <p>
+            <strong>Full Report Content (for Email):</strong>
+            <button onclick="submitReportViaEmail()" style="margin-left: 10px; background-color: #add8e6; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer;">Submit Report via Email 📧</button>
+            <button onclick="copyReportToClipboard()" style="margin-left: 10px; background-color: #ffd700; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer;">Copy Report to Clipboard 📋</button>
         </p>
         <pre id="full-report-display">Loading report...</pre>
         <button onclick="resetProgress()">Reset Progress</button>
@@ -135,7 +137,7 @@
         <ol id="practice-questions">
             <!-- Questions will be dynamically loaded here by JavaScript -->
         </ol>
-        <button onclick="shareReport()">Share Report 📧</button>
+        <button onclick="submitReportViaEmail()">Share Report 📧</button>
     </section>
 
     <!-- The Modal -->
@@ -195,7 +197,7 @@
             textarea.select();
             try {
                 document.execCommand('copy');
-                showModal('Question copied to clipboard! Paste it into Grok AI (grok.x.ai) for a fun explanation!');
+                showModal('Text copied to clipboard!'); // Changed message for general use
             } catch (err) {
                 showModal('Failed to copy: ' + err);
             }
@@ -584,10 +586,15 @@
             return `Total Shards: ${shards}\nAdventure Level: ${levels[currentLevel]}\nDaily Check-in Streak: 0\nMastery Badges: 🏆\nAreas to Re-Explore (needed hint or "I don't know"): ${struggledList}${incorrectAnswersReport}`;
         }
 
-        function shareReport() {
+        function submitReportViaEmail() { // Renamed from shareReport
             const report = generateReportContent();
             console.log('Generated Email Report Body:\n', report); 
             window.location.href = `mailto:trev2005+bilmas@gmail.com?subject=Dora's BIDMAS Report&body=${encodeURIComponent(report)}`;
+        }
+
+        function copyReportToClipboard() {
+            const report = generateReportContent();
+            copyToClipboard(report);
         }
 
         // Update the displayed Areas to Re-Explore and the full report content in real-time
