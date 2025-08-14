@@ -1,1114 +1,312 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dora's Math Quest: Integer Island Expedition 🚀</title>
-    <!-- Tailwind CSS CDN for modern styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Font - Inter for clean typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-
-    <!-- MathJax for LaTeX rendering -->
-    <script type="text/javascript" id="MathJax-script" async
-      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-    </script>
-    <script>
-      // Configure MathJax to use explicit LaTeX delimiters
-      MathJax = {
-        tex: {
-          inlineMath: [['\\(', '\\)']], // Only use \( and \) for inline math
-          displayMath: [['\\[', '\\]']] // Only use \[ and \] for display math
-        },
-        svg: {
-          fontCache: 'global' // Enable font caching for better performance
-        }
-      };
-    </script>
-    
+    <title>Dora's Math Quest: BIDMAS Expedition!</title>
     <style>
-        /* Custom CSS for Dora's Math Quest */
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(to bottom right, #87CEEB, #6A5ACD); /* Gradient background */
-            display: flex;
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f0f8ff; color: #333; }
+        header { text-align: center; }
+        section { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; background-color: white; border-radius: 10px; }
+        .qnum { cursor: help; font-weight: bold; }
+        .idk { margin-left: 10px; cursor: pointer; background-color: #ffd700; border: none; padding: 6px 10px; border-radius: 5px; }
+        .hint-btn { margin-left: 10px; cursor: pointer; background-color: #90ee90; border: none; padding: 6px 10px; border-radius: 5px; }
+        .answer-input { margin-left: 10px; width: 100px; padding: 5px; border-radius: 5px; }
+        .check-btn { margin-left: 10px; cursor: pointer; background-color: #add8e6; border: none; padding: 6px 10px; border-radius: 5px; }
+        .feedback { margin-left: 10px; color: green; display: none; font-weight: bold; }
+        .wrong { color: red; }
+        #progress-shards { font-weight: bold; }
+        .hint { display: none; background-color: #fffacd; padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .fun-msg { color: #ff4500; font-weight: bold; }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0.5rem; /* Small padding for very narrow screens */
-            box-sizing: border-box;
-            color: #333;
         }
-
-        .app-container {
-            background-color: #fff;
-            border-radius: 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            padding: 1rem; /* Adjusted padding for better mobile content display */
-            max-width: 98%; /* On mobile, use almost full width */
-            width: 800px; /* Base width for larger screens */
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 10px;
+            width: 80%; /* Could be more responsive */
+            max-width: 500px;
             text-align: center;
-            position: relative;
-            overflow-y: auto; /* Allows content to scroll vertically */
-            min-height: 650px;
-            max-height: 95vh; /* Max height to fit within viewport on most screens */
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start; /* Aligns content to the top */
-            border: 5px solid #4F46E5; /* Bold border for a game-like feel */
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
         }
-
-        /* Responsive adjustments for larger screens */
-        @media (min-width: 768px) {
-            .app-container {
-                padding: 2.5rem; /* Larger padding for desktop */
-                max-width: 90%; /* Allow wider expansion on desktop */
-                width: 960px; /* Max width for desktop for a good reading experience */
-            }
-        }
-
-        .dora-avatar {
-            font-size: 6rem;
-            margin-bottom: 1.5rem;
-            animation: float 3s infinite ease-in-out; /* Floating animation for the emoji */
-        }
-
-        /* Keyframe animation for the floating emoji */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        /* Base button styling */
-        .btn {
-            @apply bg-indigo-600 text-white font-extrabold py-3 px-4 rounded-full shadow-xl transition duration-300 ease-in-out transform hover:scale-105 active:scale-95;
-            min-width: 120px; 
-            flex-grow: 1; 
-            max-width: 250px; 
-            margin: 0.4rem; 
-            border: 4px solid #3730A3; /* Darker border for depth */
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            font-size: 0.85rem; 
-            white-space: normal; 
-            word-break: break-word; 
-        }
-
-        /* Responsive button adjustments for larger screens */
-        @media (min-width: 768px) {
-            .btn {
-                min-width: 200px; 
-                margin: 0.75rem;
-                font-size: 1.25rem; 
-                padding: 0.75rem 1.5rem; 
-            }
-        }
-
-        /* Specific button color variations */
-        .btn-secondary {
-            @apply bg-green-600 border-green-800;
-        }
-        .btn-danger {
-            @apply bg-red-600 border-red-800;
-        }
-
-        /* Styling for section titles */
-        .section-title {
-            font-size: clamp(2rem, 5vw, 4rem); /* Responsive font size */
-            @apply font-extrabold text-indigo-700 mb-4 md:mb-6; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-
-        /* Styles for consolidated content sections (tutorials, study mode) */
-        .content-section {
-            background-color: #f8f8ff; /* Light bluish background */
-            border-radius: 1rem;
-            padding: 1rem; 
-            margin-bottom: 1.5rem; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            border: 1px solid #e0e0e0;
-            text-align: left;
-        }
-
-        .content-section h3 {
-            font-size: clamp(1.5rem, 4vw, 2.5rem); /* Responsive font size */
-            @apply font-bold text-indigo-700 mb-3; 
-            text-align: center; 
-        }
-        .content-section p {
-            font-size: clamp(0.95rem, 2.5vw, 1.1rem); /* Responsive font size */
-            line-height: 1.6;
-            margin-bottom: 0.8rem;
-            color: #444;
-            text-align: left; 
-            word-break: break-word; /* Ensure long words break */
-            overflow-wrap: break-word; /* Ensure long words break */
-        }
-        .content-section .example-math {
-            font-size: clamp(1.2rem, 3.5vw, 1.8rem); /* Responsive font size for math */
-            padding: 0.5rem 0.75rem; 
-            margin-top: 1rem;
-            margin-bottom: 1rem;
-            background-color: #F3F4F6;
-            border-radius: 0.75rem;
-            border: 2px solid #D1D5DB;
-            text-align: center; 
-            overflow-x: auto; /* Allows horizontal scroll for very long equations, only if needed */
-            -webkit-overflow-scrolling: touch;
-        }
-        .content-section .emoji-display {
-            font-size: clamp(2rem, 6vw, 3rem); /* Responsive font size */
-            display: block;
-            text-align: center;
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        /* Interactive Question Specific Styles */
-        .question-item {
-            background-color: #f8f8ff; 
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            border: 1px solid #e0e0e0;
-            text-align: center; 
-        }
-        .question-item .question-text {
-            font-size: clamp(1.2rem, 3.5vw, 1.6rem); 
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
             font-weight: bold;
-            margin-bottom: 1rem;
-            color: #222;
         }
-        .question-choices {
-            display: flex; /* Use flexbox for choices */
-            flex-wrap: wrap; /* Allow choices to wrap to the next line */
-            justify-content: center; /* Center items when they wrap */
-            gap: 0.75rem; /* Space between choice buttons */
-            margin-top: 1rem;
-            width: 100%;
-        }
-        .choice-btn {
-            @apply bg-purple-200 text-purple-800 font-bold py-3 px-3 rounded-lg shadow-md transition duration-200 ease-in-out hover:bg-purple-300;
-            border: 2px solid #8B5CF6;
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem); 
-            min-height: 60px; /* Ensure tappable area */
-            flex-basis: calc(50% - 0.5rem); /* Two columns on larger screens, accounting for gap */
-            max-width: calc(50% - 0.5rem); /* Ensures two columns do not exceed 50% width each */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            word-break: break-word;
-            text-align: center;
-            line-height: 1.3;
-        }
-
-        /* Specific responsive rule for smaller screens (e.g., mobile) */
-        @media (max-width: 640px) { 
-            .choice-btn {
-                flex-basis: 100%; /* Single column on small mobile screens */
-                max-width: 100%;
-            }
-        }
-        .choice-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            background-color: #e0e0e0;
-            color: #666;
-        }
-        .correct-animation {
-            background-color: #D1FAE5; /* Light green */
-            animation: pulse-correct 0.6s forwards;
-            border-color: #10B981;
-        }
-        .incorrect-animation {
-            background-color: #FEE2E2; /* Light red */
-            animation: shake 0.6s forwards;
-            border-color: #EF4444;
-        }
-        .skip-button {
-            @apply bg-yellow-500 text-yellow-900 font-bold py-2 px-4 rounded-full shadow-md transition duration-200 ease-in-out hover:bg-yellow-600;
-            border: 2px solid #D97706;
-            margin-top: 1rem;
-            font-size: clamp(0.8rem, 2.2vw, 1rem);
-            min-width: 100px;
-        }
-
-        /* Feedback message overlay styles */
-        .feedback-message {
-            position: fixed; 
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 1.5rem 2rem; 
-            border-radius: 2rem;
-            font-size: clamp(1.5rem, 4vw, 2.5rem); 
-            font-weight: bold;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
-            z-index: 100;
-            border: 5px solid white;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
-        }
-
-        .feedback-message.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Screen management styles for single page application feel */
-        .screen {
-            display: none; /* All screens are hidden by default */
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start; /* Aligns content to the top */
-            height: 100%; 
-            width: 100%;
-            overflow-y: auto; /* Allows content to scroll vertically within the screen */
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-        }
-        .screen.active {
-            display: flex; /* Only the active screen is displayed */
-        }
-
-        /* Top navigation buttons for main sections */
-        .top-nav-buttons {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
-            gap: 0.75rem; /* Space between buttons */
-            margin-bottom: 1.5rem;
-            width: 100%;
-            padding: 0.5rem;
-            box-sizing: border-box;
-        }
-
-        .top-nav-buttons .nav-btn {
-            @apply bg-blue-500 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-200 ease-in-out hover:bg-blue-600;
-            font-size: clamp(0.8rem, 2vw, 1rem);
-            flex-shrink: 0; /* Prevent buttons from shrinking too much */
-        }
-
-        /* Loading indicator for the AI Study Mode */
-        .loading-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            font-size: 1.2rem;
-            color: #555;
-        }
-        .loading-spinner {
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #3498db; /* Blue */
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 2s linear infinite; /* Spin animation */
-            margin-bottom: 1rem;
-        }
-        /* Spin animation for the loading spinner */
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="app-container" id="appContainer"> 
-        <!-- Feedback Message Overlay (used for correct/incorrect answers, level-ups, etc.) -->
-        <div id="feedbackMessage" class="feedback-message"></div>
 
-        <!-- FULL LANDING PAGE: Contains all Tutorial and Questions Content -->
-        <div id="fullLandingPageContent" class="screen active"> 
-            <h1 class="section-title">Dora's Math Quest: BIDMAS Expedition! 🚀</h1>
-            <p class="text-xl text-gray-700 mb-8 text-center">Hey Adventurer! I'm Dora, and Integer Island needs our help! Scroll down to master BIDMAS concepts and practice problems.</p>
+    <header>
+        🦋 Dora's Math Quest: BIDMAS Expedition! 🚀
+        <p>Hey Dora! You're the brave adventurer Integer Island needs! Let's master BIDMAS and save the day! Scroll down for fun concepts and practice problems. 🌟</p>
+    </header>
 
-            <!-- Top Navigation Buttons to easily jump between sections -->
-            <div class="top-nav-buttons">
-                <button id="goToTutorialSectionBtn" class="nav-btn">Go to BIDMAS Basics 📖</button>
-                <button id="goToPracticeSectionBtn" class="nav-btn">Go to Practice 💪</button>
-            </div>
+    <nav>
+        <a href="#basics">Go to BIDMAS Basics 📖</a>
+        <a href="#practice">Go to Practice 💪</a>
+    </nav>
 
-            <!-- Tutorial Section - Dynamically populated with BIDMAS concepts -->
-            <div id="tutorialSection" class="content-section">
-                <h3>BIDMAS Academy! 📖</h3>
-                <!-- Tutorial content will be dynamically inserted here by JavaScript -->
-            </div>
+    <section id="progress">
+        <h2>View Progress &amp; Report 📈</h2>
+        <h3>Your Expedition Log! ✨</h3>
+        <p>Total Data Shards: <span id="progress-shards">0</span></p>
+        <p>Adventure Level: <span id="adventure-level">Beginner Explorer</span></p>
+        <p>Daily Check-in Streak: 0 🔥</p>
+        <p>Mastery Badges: 🏆</p>
+        <p>Areas to Re-Explore: 🚧</p>
+        <button onclick="resetProgress()">Reset Progress</button>
+        <a href="#basics">Back to Lessons</a>
+    </section>
 
-            <!-- Practice Challenges Section - Dynamically populated with interactive quiz questions -->
-            <div id="practiceSection" class="content-section">
-                <h3>Practice Challenges! 🧠</h3>
-                <p class="text-lg text-gray-600 mb-4 text-center">Answer the questions below to test your knowledge!</p>
-                <!-- Interactive quiz questions will be dynamically inserted here by JavaScript -->
-            </div>
+    <section id="basics">
+        <h2>Dora's Study Corner! 📚</h2>
+        <p>BIDMAS Basics: Hey Dora, BIDMAS is like a secret code for solving math puzzles! It stands for Brackets, Indices, Division/Multiplication, Addition/Subtraction. Follow this order to crack every math problem! 🎉</p>
+        <ul>
+            <li><strong>B</strong>rackets -&gt; () Solve these first!</li>
+            <li><strong>I</strong>ndices -&gt; x² or 8² Like superpowers for numbers!</li>
+            <li><strong>D</strong>ivision -&gt; ÷ or fractions</li>
+            <li><strong>M</strong>ultiplication -&gt; ×</li>
+            <li><strong>A</strong>ddition -&gt; +</li>
+            <li><strong>S</strong>ubtraction -&gt; -</li>
+        </ul>
+        <p>Example: 2 + 3 × 4. Do 3 × 4 = 12 first, then 2 + 12 = 14. You got this! 😊</p>
+        <a href="#progress">Back to Progress</a>
+    </section>
 
-            <!-- Button to navigate to the Progress & Report screen -->
-            <button id="goToProgressButton" class="btn my-6">View Progress & Report 📈</button>
-        </div>
+    <section id="practice">
+        <h2>Practice Challenges! 💪</h2>
+        <p>Dora, let's tackle these BIDMAS homework problems and collect shards! Each correct answer earns a shard. Get 10 to level up! 🚀</p>
+        <ol>
+            <li>
+                <span class="qnum">1.</span> Calculate the following using the correct order of operations.
+                <ul>
+                    <li>a. 6 + 3 × 4 <input class="answer-input" data-correct="18" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1a">Hint</button> <button class="idk" data-question="6 + 3 × 4">I don't know</button>
+                    <div id="hint1a" class="hint">Hey Dora! Let's solve 6 + 3 × 4 with BIDMAS. No brackets or indices, so multiply first: 3 × 4 = 12. Then add: 6 + 12 = 18. Multiplication comes before addition in BIDMAS! You're a star! 🌟</div></li>
+                    <li>b. 18 - 12 / 3 <input class="answer-input" data-correct="14" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1b">Hint</button> <button class="idk" data-question="18 - 12 / 3">I don't know</button>
+                    <div id="hint1b" class="hint">Nice one, Dora! For 18 - 12 / 3: No brackets/indices. Division first: 12 / 3 = 4. Then subtract: 18 - 4 = 14. Division beats subtraction in BIDMAS! Keep it up! 💪</div></li>
+                    <li>c. 8 + (-10) <input class="answer-input" data-correct="-2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1c">Hint</button> <button class="idk" data-question="8 + (-10)">I don't know</button>
+                    <div id="hint1c" class="hint">You're rocking it! 8 + (-10) is like 8 - 10 = -2. Just addition with a negative number, no other steps. Super simple! 😄</div></li>
+                    <li>d. 17 - 3 + (-8) <input class="answer-input" data-correct="6" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint1d">Hint</button> <button class="idk" data-question="17 - 3 + (-8)">I don't know</button>
+                    <div id="hint1d" class="hint">Great work! 17 - 3 + (-8): All addition/subtraction, so go left to right. 17 - 3 = 14, then 14 + (-8) = 14 - 8 = 6. Negatives are no match for you! 🏆</div></li>
+                </ul>
+            </li>
+            <li>
+                <span class="qnum">2.</span> Evaluate the following expressions using the correct order of operations.
+                <ul>
+                    <li>a. 6 × (-9) <input class="answer-input" data-correct="-54" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2a">Hint</button> <button class="idk" data-question="6 × (-9)">I don't know</button>
+                    <div id="hint2a" class="hint">Dora, you're awesome! 6 × (-9): Just multiply: 6 × -9 = -54. No other steps since it's only multiplication. You're a math hero! ⚡</div></li>
+                    <li>b. 72 × 8 - 7 <input class="answer-input" data-correct="569" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2b">Hint</button> <button class="idk" data-question="72 × 8 - 7">I don't know</button>
+                    <div id="hint2b" class="hint">Sweet! 72 × 8 - 7: Multiply first: 72 × 8 = 576, then subtract: 576 - 7 = 569. BIDMAS makes it clear! 🎈</div></li>
+                    <li>c. 7 + (-1) - 4 <input class="answer-input" data-correct="2" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2c">Hint</button> <button class="idk" data-question="7 + (-1) - 4">I don't know</button>
+                    <div id="hint2c" class="hint">Fun one! 7 + (-1) - 4: Go left to right: 7 - 1 = 6, then 6 - 4 = 2. Negatives? No problem for you! 😎</div></li>
+                    <li>d. (6 + 3) / 9 <input class="answer-input" data-correct="1" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint2d">Hint</button> <button class="idk" data-question="(6 + 3) / 9">I don't know</button>
+                    <div id="hint2d" class="hint">Yay! (6 + 3) / 9: Brackets first: 6 + 3 = 9, then divide: 9 / 9 = 1. Brackets rule in BIDMAS! 🔑</div></li>
+                </ul>
+            </li>
+            <li>
+                <span class="qnum">3.</span> Calculate the following expressions using the correct order of operations. (only a and d)
+                <ul>
+                    <li>a. -12 + 2 × (-1) <input class="answer-input" data-correct="-14" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint3a">Hint</button> <button class="idk" data-question="-12 + 2 × (-1)">I don't know</button>
+                    <div id="hint3a" class="hint">Cool, Dora! -12 + 2 × (-1): Multiply first: 2 × -1 = -2, then add: -12 + -2 = -14. Multiplication before addition! 🌈</div></li>
+                    <li>d. (4 + 8 × 7) - 7 <input class="answer-input" data-correct="53" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint3d">Hint</button> <button class="idk" data-question="(4 + 8 × 7) - 7">I don't know</button>
+                    <div id="hint3d" class="hint">Epic! (4 + 8 × 7) - 7: Inside brackets, multiply first: 8 × 7 = 56, then 4 + 56 = 60. Then subtract: 60 - 7 = 53. BIDMAS rocks! 🚀</div></li>
+                </ul>
+            </li>
+            <li value="7">
+                <span class="qnum">7.</span> The expression 6 + 2 × (5 - 10) / 2 is equal to: <br>
+                a. -15 b. -35 c. -60 d. 1 <br>
+                <input class="answer-input" data-correct="1" type="text" placeholder="Enter letter or number"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint7">Hint</button> <button class="idk" data-question="6 + 2 × (5 - 10) / 2">I don't know</button>
+                <div id="hint7" class="hint">Adventure time! 6 + 2 × (5 - 10) / 2: Brackets first: 5 - 10 = -5. Multiply: 2 × -5 = -10. Divide: -10 / 2 = -5. Add: 6 + -5 = 1. So d. 1! You're amazing! 🥳</div>
+            </li>
+            <li value="9">
+                <span class="qnum">9.</span> A submarine dives 100m below sea level, rises 60m, then dives 25m. Calculate its final position. <input class="answer-input" data-correct="-65" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint9">Hint</button> <button class="idk" data-question="A submarine dives 100m below sea level, rises 60m, then dives 25m. Calculate its final position.">I don't know</button>
+                <div id="hint9" class="hint">Underwater quest! Start at 0. Dives 100m: -100. Rises 60m: -100 + 60 = -40. Dives 25m: -40 - 25 = -65m. Below sea level! 🌊</div>
+            </li>
+            <li value="12">
+                <span class="qnum">12.</span> Darcy says there is no difference between the expressions 8 - 2 × (4 + 2) and 8 - 2 × 4 + 2. Do you agree with Darcy? Justify your answer with correct working. <br>
+                <textarea class="answer-input" data-correct="no" style="width: 300px; height: 100px;"></textarea><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint12">Hint</button> <button class="idk" data-question="Darcy says there is no difference between the expressions 8 - 2 × (4 + 2) and 8 - 2 × 4 + 2. Do you agree? Justify with working.">I don't know</button>
+                <div id="hint12" class="hint">Detective Dora! First: 8 - 2 × (4 + 2). Brackets: 4 + 2 = 6. Multiply: 2 × 6 = 12. Subtract: 8 - 12 = -4.<br>Second: 8 - 2 × 4 + 2. Multiply: 2 × 4 = 8. Then 8 - 8 + 2 = 2. Different answers, so no! Brackets matter! 🕵️‍♀️</div>
+            </li>
+            <li value="15">
+                <span class="qnum">15.</span> Ryan buys a vanilla cupcake at $3.75, 2 cinnamon donuts at $5.25 each, and 3 chocolate chip cookies at $2.50 each. Determine the total amount Ryan has to pay. <input class="answer-input" data-correct="21.75" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint15">Hint</button> <button class="idk" data-question="Ryan buys a vanilla cupcake at $3.75, 2 cinnamon donuts at $5.25 each, and 3 chocolate chip cookies at $2.50 each. Total?">I don't know</button>
+                <div id="hint15" class="hint">Yummy math! Cupcake: 3.75. Donuts: 2 × 5.25 = 10.50. Cookies: 3 × 2.50 = 7.50. Add: 3.75 + 10.50 + 7.50 = 21.75. Multiply quantities first! 🍩</div>
+            </li>
+        </ol>
+        <button onclick="shareReport()">Share Report 📧</button>
+    </section>
 
-        <!-- Progress Screen: Displays player's stats, badges, and troubled areas -->
-        <div id="progressScreen" class="screen">
-            <h2 class="section-title">Your Expedition Log! ✨</h2>
-            <p class="text-xl text-gray-700 mb-4">Total Data Shards: <span id="progressPoints" class="font-bold text-blue-600">0</span></p>
-            <p class="text-xl text-gray-700 mb-4">Adventure Level: <span id="levelDisplay" class="font-bold text-green-600">Beginner Explorer</span></p>
-            <p class="text-xl text-gray-700 mb-4">Daily Check-in Streak: <span id="progressStreak" class="font-bold text-red-600">0</span> 🔥</p>
-
-            <h3 class="text-3xl font-bold text-purple-600 mt-8 mb-4">Mastery Badges: 🏆</h3>
-            <div id="badgesDisplay" class="flex flex-wrap justify-center gap-4 mb-8">
-                <!-- Badges earned will be displayed here by JavaScript -->
-            </div>
-
-            <h3 class="text-3xl font-bold text-red-600 mt-8 mb-4">Areas to Re-Explore: 🚧</h3>
-            <ul id="troubledAreasList" class="list-disc list-inside text-xl text-gray-700 text-left w-full max-w-lg mx-auto">
-                <!-- Topics where Dora struggled will be listed here by JavaScript -->
-            </ul>
-
-            <!-- Button to start a study session, shown only if there are troubled areas -->
-            <button id="startStudySessionButton" class="btn btn-secondary mt-8 hidden">Start Study Session on Troubled Areas 📚</button>
-            <!-- Button to go back to the main lessons/tutorial section -->
-            <button id="backToLandingButton" class="btn btn-danger mt-4">Back to Lessons</button>
-            <!-- Button to share the progress report via email -->
-            <button id="sendReportButton" class="btn btn-secondary mt-4">Share Report 📧</button>
-        </div>
-
-        <!-- Study Mode Screen: Displays AI-generated mini-lessons -->
-        <div id="studyModeScreen" class="screen">
-            <h2 class="section-title">Dora's Study Corner! 📚</h2>
-            <div id="studyModeContent" class="content-section flex flex-col items-center justify-center min-h-[200px] text-gray-700">
-                <!-- AI-generated content or loading indicator will go here -->
-                <div class="loading-indicator">
-                    <div class="loading-spinner"></div>
-                    <p>Dora is thinking up a brilliant lesson for you...</p>
-                </div>
-            </div>
-            <!-- Button to go back to the progress report screen -->
-            <button id="backToProgressFromStudyButton" class="btn btn-danger mt-8">Back to Progress</button>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message"></p>
         </div>
     </div>
 
     <script>
-        // --- Global State Management ---
-        // Stores all persistent game data (points, level, streak, badges, troubled topics, session history)
-        let appState = {
-            points: 0,
-            level: 1,
-            dailyStreak: 0,
-            lastPlayedDate: null,
-            badges: [], 
-            troubledAreas: {}, // Stores { topic: count_of_incorrect_answers }
-            sessionHistory: [], 
-        };
+        let shards = 0;
+        const levels = ['Beginner Explorer', 'Junior Adventurer', 'Math Master', 'BIDMAS Boss'];
+        let currentLevel = 0;
 
-        // --- DOM Element References (Cached for performance) ---
-        const appContainer = document.getElementById('appContainer'); 
-        const fullLandingPageContent = document.getElementById('fullLandingPageContent'); 
-        const tutorialSection = document.getElementById('tutorialSection'); 
-        const practiceSection = document.getElementById('practiceSection'); 
+        // Get the modal
+        const modal = document.getElementById("myModal");
+        // Get the <span> element that closes the modal
+        const span = document.getElementsByClassName("close-button")[0];
+        const modalMessage = document.getElementById("modal-message");
 
-        const goToProgressButton = document.getElementById('goToProgressButton'); 
-        const goToTutorialSectionBtn = document.getElementById('goToTutorialSectionBtn');
-        const goToPracticeSectionBtn = document.getElementById('goToPracticeSectionBtn');
+        // Function to display the modal
+        function showModal(message) {
+            modalMessage.textContent = message;
+            modal.style.display = "flex"; // Use flex to center the content
+        }
 
-        const progressScreen = document.getElementById('progressScreen');
-        const startStudySessionButton = document.getElementById('startStudySessionButton'); 
-        const backToProgressFromStudyButton = document.getElementById('backToProgressFromStudyButton'); 
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
 
-        const studyModeScreen = document.getElementById('studyModeScreen'); 
-        const studyModeContent = document.getElementById('studyModeContent'); 
-
-        const pointsDisplay = document.getElementById('pointsDisplay'); // Used on landing page if implemented
-        const levelDisplay = document.getElementById('levelDisplay'); // Used on landing page if implemented
-        const progressPoints = document.getElementById('progressPoints'); // Used on progress screen
-        const progressLevel = document.getElementById('progressLevel'); // Used on progress screen (will be replaced by levelDisplay)
-        const progressStreak = document.getElementById('progressStreak'); // Used on progress screen
-        const badgesDisplay = document.getElementById('badgesDisplay'); // Container for badges
-        const troubledAreasList = document.getElementById('troubledAreasList'); // Container for troubled topics list
-
-        const backToLandingButton = document.getElementById('backToLandingButton'); 
-        const sendReportButton = document.getElementById('sendReportButton'); 
-
-        const feedbackMessage = document.getElementById('feedbackMessage'); // The global feedback overlay
-
-
-        // --- Game Content Data ---
-        // Tutorial content organized by topic and steps, with LaTeX for math and emojis for visual appeal
-        const tutorialTopics = [
-            {
-                id: 'bidmas_intro',
-                title: 'What is BIDMAS? 🤔',
-                steps: [
-                    { text: 'BIDMAS is our secret code to solve math problems! It tells us the correct order to do things.', emoji: '🔑' },
-                    { text: 'It stands for **Brackets**, **Indices** - \\(x^2\\) or \\(\\sqrt{}\\) - **Division** / **Multiplication**, **Addition** / **Subtraction**. Let\'s break it down!', emoji: '🔍' } 
-                ]
-            },
-            {
-                id: 'bidmas_brackets',
-                title: 'B is for Brackets! (\\( \\) )',
-                steps: [
-                    { text: 'Always solve anything INSIDE brackets first. They\'re super important!', emoji: '🚧' },
-                    { text: 'Example: In \\(8-2\\times(4+2)\\), we solve \\((4+2)\\) first, which is \\(6\\).', example: '8-2\\times(4+2) \\rightarrow 8-2\\times6' }
-                ]
-            },
-            {
-                id: 'bidmas_indices',
-                title: 'I is for Indices! (\\(x^2\\) or \\(\\sqrt{}\\))',
-                steps: [
-                    { text: 'Indices are powers (like \\(x^2\\)) or square roots (\\(\\sqrt{}\\)). Do these next!', emoji: '📈' },
-                    { text: 'Example: In \\((-2)^3 - 3 \\times -2\\), we solve \\((-2)^3\\) first, which is \\(-8\\).', example: '(-2)^3 - 3 \\times -2 \\rightarrow -8 - 3 \\times -2' }
-                ]
-            },
-            {
-                id: 'bidmas_division_multiplication',
-                title: 'DM is for Division & Multiplication! (\\(\\div \\times\\))',
-                steps: [
-                    { text: 'These two are a team! Do them from left to right as they appear.', emoji: '➡️' },
-                    { text: 'Example: In \\(72\\div8\\times-3\\), we do \\(72\\div8\\) first, which is \\(9\\). Then \\(9\\times-3\\).', example: '72\\div8\\times-3 \\rightarrow 9\\times-3' }
-                ]
-            },
-            {
-                id: 'bidmas_addition_subtraction',
-                title: 'AS is for Addition & Subtraction! (\\(+- \\))',
-                steps: [
-                    { text: 'These are also a team! Do them last, from left to right as they appear.', emoji: '✅' },
-                    { text: 'Example: In \\(8-8+2\\), we do \\(8-8\\) first, which is \\(0\\). Then \\(0+2\\).', example: '8-8+2 \\rightarrow 0+2' }
-                ]
-            },
-            {
-                id: 'bidmas_full_example',
-                title: 'Putting it all together!',
-                steps: [
-                    { text: 'Let\'s try a full problem: \\(5\\times6-3+(5-2)\\).', example: '5\\times6-3+(5-2)' },
-                    { text: '1. Brackets: \\((5-2) = 3\\)', example: '5\\times6-3+3' },
-                    { text: '2. Multiplication: \\(5\\times6 = 30\\)', example: '30-3+3' },
-                    { text: '3. Subtraction/Addition (left to right): \\(30-3 = 27\\), then \\(27+3 = 30\\).', example: '30-3+3 \\rightarrow 27+3 \\rightarrow 30' },
-                    { text: 'You\'ve got this, Explorer!', emoji: '🌟' }
-                ]
-            }
-        ];
-
-        // Quiz Questions - Data for interactive practice challenges.
-        // Questions and choices are raw LaTeX strings, to be wrapped by JS.
-        const quizQuestions = [
-            { id: 'q1a', topic: 'calculations', question: '6+3\\times(-4)', answer: '-6', choices: ['-6', '36', '18', '12'] },
-            { id: 'q1b', topic: 'calculations', question: '18-\\frac{12}{-3}', answer: '22', choices: ['14', '22', '12', '10'] },
-            { id: 'q1c', topic: 'calculations', question: '8+(-4)-10', answer: '-6', choices: ['4', '-6', '-8', '6'] },
-            { id: 'q2b', topic: 'calculations', question: '72\\div8\\times(-3)', answer: '-27', choices: ['-27', '27', '-3', '3'] },
-            { id: 'q2c', topic: 'calculations', question: '7+(-3-4)', answer: '0', choices: ['0', '14', '-14', '7'] },
-            { id: 'q3b', topic: 'calculations', question: '-6\\times5-2\\times(-6)', answer: '-18', choices: ['-42', '-18', '18', '42'] },
-            { id: 'q4c', topic: 'indices', question: 'Evaluate: (-2)^3-3\\times(-2)', answer: '-2', choices: ['-2', '14', '-10', '2'] },
-            { id: 'q4b', topic: 'indices', question: 'Evaluate: -6-4+(-3)^2', answer: '-1', choices: ['-1', '11', '-19', '2'] },
-            { id: 'q5a', topic: 'indices', question: 'Evaluate: \\frac{-8}{2}+(-2)^2', answer: '0', choices: ['0', '-8', '4', '-2'] },
-            { id: 'q9', topic: 'word_problems', question: 'A submarine dives 100m (-100), rises 60m (+60), then dives 25m (-25). What is its final position (in meters)?', answer: '-65', choices: ['-65', '-15', '185', '35'] },
-            { id: 'q10', topic: 'word_problems', question: 'Jini has \\$2075. She makes 2 withdrawals of \\$150 each, then 5 deposits of \\$60 each. How much money does Jini have now?', answer: '2075', choices: ['1925', '2075', '2125', '1875'] },
-            { id: 'q11', topic: 'word_problems', question: 'A truck holds 156L diesel. After 4 days, 64L is left. What was the average fuel usage per day (in L)?', answer: '23', choices: ['23', '38', '15', '26'] },
-            { id: 'q16', topic: 'word_problems', question: 'A snail climbs 3cm (+3), slips back 2cm (-2), climbs 4cm (+4), and slips back 1cm (-1). How far is it from the bottom of the bucket?', answer: '4', choices: ['4', '10', '2', '6'] },
-            { id: 'q13a', topic: 'true_false', question: 'Is 5\\times6-3+(5-2) < 5\\times(6-3)+5-2 True or False?', answer: 'False', choices: ['True', 'False'] },
-            { id: 'q13b', topic: 'true_false', question: 'Is 2+(15\\div3)\\times1 = 2+15\\div(3\\times1) True or False?', answer: 'True', choices: ['True', 'False'] },
-        ];
-
-
-        // --- Utility Functions ---
-
-        /**
-         * Safely typesets elements with MathJax, waiting for it to be ready.
-         * This function helps ensure LaTeX renders correctly even when content is dynamically added.
-         * @param {HTMLElement[]} elements - Array of DOM elements to typeset.
-         */
-        function typesetIfMathJaxReady(elements) {
-            // Check if MathJax is loaded and ready to process
-            if (window.MathJax && window.MathJax.typesetPromise) { 
-                // Process the elements and catch any potential errors
-                window.MathJax.typesetPromise(elements).catch(err => {
-                    console.error("MathJax typesetting error for elements:", elements, err);
-                });
-            } else {
-                // If MathJax isn't ready yet, retry after a short delay
-                setTimeout(() => typesetIfMathJaxReady(elements), 100); 
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
             }
         }
 
-        /**
-         * Manages screen visibility for a single-page application experience.
-         * Hides all screens and then displays the specified one.
-         * @param {HTMLElement} screenToShow - The DOM element of the screen to display.
-         */
-        function showScreen(screenToShow) {
-            // Get all elements with the 'screen' class
-            const allScreens = [fullLandingPageContent, progressScreen, studyModeScreen]; 
-            // Hide all screens
-            allScreens.forEach(screen => {
-                screen.classList.remove('active');
-            });
-
-            // Show the target screen
-            screenToShow.classList.add('active');
-
-            // Scroll to top of the specific screen's scrollable content
-            if (screenToShow === fullLandingPageContent) {
-                appContainer.scrollTo({ top: 0, behavior: 'smooth' }); 
-            } else if (screenToShow === progressScreen) {
-                progressScreen.scrollTo({ top: 0, behavior: 'smooth' }); 
-            } else if (screenToShow === studyModeScreen) {
-                studyModeScreen.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-            
-            // Trigger MathJax typesetting for the newly displayed screen's content
-            typesetIfMathJaxReady([screenToShow]);
-        }
-
-        /**
-         * Displays a temporary feedback message overlay (e.g., "Correct!", "Incorrect!").
-         * @param {string} message - The message text to display.
-         * @param {string} type - 'correct' or 'incorrect' for styling the message.
-         */
-        function displayFeedback(message, type) {
-            feedbackMessage.textContent = message;
-            feedbackMessage.className = 'feedback-message show'; // Show the message and apply base styles
-            if (type === 'correct') {
-                feedbackMessage.classList.add('bg-green-600');
-                feedbackMessage.style.borderColor = '#10B981';
-            } else if (type === 'incorrect') {
-                feedbackMessage.classList.add('bg-red-600');
-                feedbackMessage.style.borderColor = '#EF4444';
-            }
-
-            // Hide the message after a short delay
-            setTimeout(() => {
-                feedbackMessage.classList.remove('show', 'bg-green-600', 'bg-red-600');
-                feedbackMessage.style.borderColor = 'white'; 
-            }, 1800);
-        }
-
-        /**
-         * Saves the current application state to localStorage for persistence.
-         */
-        function saveAppState() {
-            localStorage.setItem('doraMathQuest', JSON.stringify(appState));
-        }
-
-        /**
-         * Loads the application state from localStorage, initializing default values for new properties.
-         */
-        function loadAppState() {
-            const savedState = localStorage.getItem('doraMathQuest');
-            if (savedState) {
-                // Parse the saved state, and ensure new properties are initialized if they don't exist
-                appState = JSON.parse(savedState);
-                appState.dailyStreak = appState.dailyStreak || 0;
-                appState.lastPlayedDate = appState.lastPlayedDate || null;
-                appState.troubledAreas = appState.troubledAreas || {};
-                appState.sessionHistory = appState.sessionHistory || [];
-                appState.badges = appState.badges || [];
-            }
-            checkDailyStreak(); // Check streak on load
-        }
-
-        /**
-         * Updates the points and level displays throughout the application.
-         */
-        function updatePointsAndLevelDisplay() {
-            // Update points on various display elements
-            if(pointsDisplay) pointsDisplay.textContent = appState.points;
-            if(progressPoints) progressPoints.textContent = appState.points;
-
-            // Update level name based on current points
-            if(levelDisplay) levelDisplay.textContent = getLevelName(appState.level);
-            if(progressLevel) progressLevel.textContent = getLevelName(appState.level); // This might be redundant if levelDisplay is the main one
-
-            updateLevel(); // Recalculate and update level
-        }
-
-        /**
-         * Calculates and updates the user's adventure level based on points.
-         * Triggers a "Level Up!" feedback message if the level changes.
-         */
-        function updateLevel() {
-            // Determine the new level based on points (150 points per level)
-            const newLevel = Math.floor(appState.points / 150) + 1; 
-            if (newLevel > appState.level) {
-                displayFeedback(`Level Up! You reached Level ${newLevel}! 🎉`, 'correct');
-                appState.level = newLevel; // Update the app state with the new level
-            }
-            // Update display elements with the current level name
-            if(levelDisplay) levelDisplay.textContent = getLevelName(appState.level);
-            if(progressLevel) progressLevel.textContent = getLevelName(appState.level);
-        }
-
-        /**
-         * Returns a descriptive name for the given level number.
-         * @param {number} level - The level number.
-         * @returns {string} The descriptive level name.
-         */
-        function getLevelName(level) {
-            if (level < 3) return 'Novice Explorer';
-            if (level < 6) return 'Junior Navigator';
-            if (level < 10) return 'Equation Expert';
-            if (level < 15) return 'Formula Master';
-            return 'Integer Island Legend!';
-        }
-
-        /**
-         * Checks and updates the daily streak based on the last played date.
-         * Provides feedback messages for streak maintenance or breakage.
-         */
-        function checkDailyStreak() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Normalize to start of day
-            const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-
-            if (appState.lastPlayedDate) {
-                const lastPlayed = new Date(appState.lastPlayedDate);
-                lastPlayed.setHours(0, 0, 0, 0);
-
-                const oneDay = 24 * 60 * 60 * 1000; // Milliseconds in one day
-                const diffDays = Math.round(Math.abs((today.getTime() - lastPlayed.getTime()) / oneDay));
-
-                if (todayString === appState.lastPlayedDate) {
-                    // Played today already, no change to streak
-                } else if (diffDays === 1) {
-                    // Played yesterday, streak continues
-                    appState.dailyStreak++;
-                    displayFeedback(`Streak! ${appState.dailyStreak} days in a row! 🔥`, 'correct');
-                } else {
-                    // Gap in playing, streak broken
-                    if (appState.dailyStreak > 0) { // Only show broken message if there was a streak to break
-                        displayFeedback('Streak Broken! Start a new one! 😔', 'incorrect');
-                    }
-                    appState.dailyStreak = 0;
-                }
-            } else {
-                // First time playing or no last played date, streak starts at 0
-                appState.dailyStreak = 0;
-            }
-            appState.lastPlayedDate = todayString; // Update last played date to today
-            if(progressStreak) progressStreak.textContent = appState.dailyStreak; // Update display
-            saveAppState(); // Save updated streak
-        }
-
-        /**
-         * Unlocks a badge if it hasn't been earned yet.
-         * Provides feedback and updates the progress screen.
-         * @param {string} id - Unique ID for the badge.
-         * @param {string} name - Display name of the badge.
-         * @param {string} emoji - Emoji icon for the badge.
-         */
-        function unlockBadge(id, name, emoji) {
-            // Check if the badge is already in the appState.badges array
-            if (!appState.badges.some(badge => badge.id === id)) {
-                appState.badges.push({ id, name, emoji }); // Add new badge
-                displayFeedback(`New Badge Unlocked! ${name} ${emoji}`, 'correct'); // Celebrate!
-                saveAppState(); // Save updated badges
-                updateProgressScreen(); // Refresh progress display
-            }
-        }
-        
-        // --- Content Generation (Dynamic HTML) ---
-
-        /**
-         * Handles user's answer submission for an interactive question.
-         * Updates points, troubled areas, and provides visual feedback.
-         * @param {string} userAnswer - The answer submitted by the user.
-         * @param {object} question - The question object from `quizQuestions`.
-         * @param {HTMLElement} questionItemElem - The DOM element for the current question.
-         */
-        function handleAnswer(userAnswer, question, questionItemElem) {
-            const choiceButtons = questionItemElem.querySelectorAll('.choice-btn');
-            // Disable all choice buttons for the current question after an answer is given
-            choiceButtons.forEach(btn => btn.disabled = true); 
-
-            const isCorrect = (userAnswer === question.answer);
-            const feedbackArea = questionItemElem.querySelector('.feedback-area'); // Area to display feedback message
-
-            // Record session progress. Ensure current session history entry exists.
-            const sessionRecord = appState.sessionHistory[appState.sessionHistory.length - 1] || { questionsAttempted: 0, correctAnswers: 0, pointsEarned: 0, troubledTopics: [] };
-            sessionRecord.questionsAttempted = (sessionRecord.questionsAttempted || 0) + 1;
-
-            if (userAnswer === "Don't Understand 💡") { 
-                displayFeedback("It's okay! Review the topics above.", "incorrect");
-                // Provide the correct answer in the feedback, formatted with MathJax
-                feedbackArea.innerHTML = `<p class="text-red-600 mt-2 font-semibold">Review related tutorials above. The answer is: \\(${question.answer}\\)</p>`; 
-                typesetIfMathJaxReady([feedbackArea]); // Typeset MathJax in the feedback
-                // Mark this topic as troubled
-                appState.troubledAreas[question.topic] = (appState.troubledAreas[question.topic] || 0) + 1;
-                if (!sessionRecord.troubledTopics.includes(question.topic)) {
-                    sessionRecord.troubledTopics.push(question.topic);
-                }
-            } else if (isCorrect) {
-                displayFeedback("Correct! 🎉", "correct");
-                feedbackArea.innerHTML = `<p class="text-green-600 mt-2 font-semibold">Correct! Well done!</p>`;
-                appState.points += 25; // Award points
-                sessionRecord.correctAnswers = (sessionRecord.correctAnswers || 0) + 1;
-                sessionRecord.pointsEarned = (sessionRecord.pointsEarned || 0) + 25;
-                // If a troubled area for this topic existed, decrement its count. If it reaches 0, remove it.
-                if (appState.troubledAreas[question.topic] && appState.troubledAreas[question.topic] > 0) {
-                    appState.troubledAreas[question.topic]--;
-                    if (appState.troubledAreas[question.topic] === 0) {
-                        delete appState.troubledAreas[question.topic]; 
-                    }
-                }
-                // Check for and unlock badges based on points
-                if (appState.points >= 100 && !appState.badges.some(b => b.id === 'first_math_master')) {
-                    unlockBadge('first_math_master', 'First Math Master', '✨');
-                }
-                if (appState.points >= 250 && !appState.badges.some(b => b.id === 'integer_navigator')) {
-                    unlockBadge('integer_navigator', 'Integer Navigator', '🧭');
-                }
-
-                // Apply correct animation to the selected button
-                const selectedButton = Array.from(choiceButtons).find(btn => btn.textContent === userAnswer);
-                if (selectedButton) {
-                    selectedButton.classList.add('correct-animation');
-                }
-
-            } else { // Incorrect answer
-                displayFeedback("Incorrect. 🤔", "incorrect");
-                // Provide the correct answer, formatted with MathJax
-                feedbackArea.innerHTML = `<p class="text-red-600 mt-2 font-semibold">Incorrect. The answer is: \\(${question.answer}\\)</p>`; 
-                typesetIfMathJaxReady([feedbackArea]); 
-                // Increment troubled area count for this topic
-                appState.troubledAreas[question.topic] = (appState.troubledAreas[question.topic] || 0) + 1;
-                if (!sessionRecord.troubledTopics.includes(question.topic)) {
-                    sessionRecord.troubledTopics.push(question.topic);
-                }
-
-                // Apply incorrect animation to the selected button
-                const selectedButton = Array.from(choiceButtons).find(btn => btn.textContent === userAnswer);
-                if (selectedButton) {
-                    selectedButton.classList.add('incorrect-animation');
-                }
-            }
-            saveAppState(); // Save state after each answer
-            updatePointsAndLevelDisplay(); // Update display immediately
-        }
-
-        /**
-         * Renders all tutorial content and quiz questions dynamically into the main page.
-         */
-        function loadFullWorksheetContent() {
-            tutorialSection.innerHTML = ''; // Clear existing tutorial content
-            practiceSection.innerHTML = `
-                <h3>Practice Challenges! 🧠</h3>
-                <p class="text-lg text-gray-600 mb-4 text-center">Answer the questions below to test your knowledge!</p>
-            `; // Clear and re-add practice section header
-
-            // Populate Tutorial Section
-            tutorialTopics.forEach(topic => {
-                const topicSection = document.createElement('div');
-                topicSection.classList.add('content-section'); 
-                topicSection.innerHTML = `<h3>${topic.title}</h3>`; 
-
-                topic.steps.forEach(step => {
-                    const stepP = document.createElement('p');
-                    stepP.innerHTML = step.text; // Text might contain inline LaTeX (\(...\))
-                    topicSection.appendChild(stepP);
-
-                    if (step.example) {
-                        const exampleDiv = document.createElement('div');
-                        exampleDiv.classList.add('example-math');
-                        exampleDiv.innerHTML = `\\[${step.example}\\]`; // Use \[...\] for display MathJax
-                        topicSection.appendChild(exampleDiv);
-                    }
-                    if (step.emoji) {
-                        const emojiSpan = document.createElement('span');
-                        emojiSpan.classList.add('emoji-display');
-                        emojiSpan.innerHTML = step.emoji; 
-                        topicSection.appendChild(emojiSpan);
-                    }
-                });
-                tutorialSection.appendChild(topicSection);
-            });
-
-            // Populate Practice Challenges Section
-            quizQuestions.forEach((question, index) => {
-                const questionItem = document.createElement('div');
-                questionItem.classList.add('question-item');
-                questionItem.setAttribute('data-question-id', question.id); 
-
-                const questionTextElem = document.createElement('p');
-                questionTextElem.classList.add('question-text');
-                questionTextElem.innerHTML = `${index + 1}. \\(${question.question}\\)`; // Use \(...\) for inline MathJax in questions
-                questionItem.appendChild(questionTextElem);
-
-                const choicesContainer = document.createElement('div');
-                choicesContainer.classList.add('question-choices');
-
-                // Shuffle choices to randomize order for each question
-                let shuffledChoices = [...question.choices];
-                for (let i = shuffledChoices.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [shuffledChoices[i], shuffledChoices[j]] = [shuffledChoices[j], shuffledChoices[i]];
-                }
-
-                shuffledChoices.forEach(choice => {
-                    const choiceBtn = document.createElement('button');
-                    choiceBtn.classList.add('choice-btn');
-                    choiceBtn.innerHTML = `\\(${choice}\\)`; // Use \(...\) for inline MathJax in choices
-                    choiceBtn.addEventListener('click', () => handleAnswer(choice, question, questionItem));
-                    choicesContainer.appendChild(choiceBtn);
-                });
-
-                // Add "Don't Understand" button
-                const dontUnderstandBtn = document.createElement('button');
-                dontUnderstandBtn.classList.add('skip-button', 'choice-btn'); 
-                dontUnderstandBtn.innerHTML = "Don't Understand 💡"; 
-                dontUnderstandBtn.addEventListener('click', () => handleAnswer("Don't Understand 💡", question, questionItem)); 
-                choicesContainer.appendChild(dontUnderstandBtn);
-
-                questionItem.appendChild(choicesContainer);
-
-                const feedbackArea = document.createElement('div');
-                feedbackArea.classList.add('feedback-area', 'mt-4'); 
-                questionItem.appendChild(feedbackArea);
-
-                practiceSection.appendChild(questionItem);
-            });
-
-            // After all content is added to the DOM, trigger MathJax typesetting for the entire app container
-            typesetIfMathJaxReady([appContainer]);
-
-            // Log a new session entry when the worksheet is loaded/reloaded
-            appState.sessionHistory.push({
-                date: new Date().toLocaleString(),
-                type: 'worksheet_practice',
-                questionsAttempted: 0,
-                correctAnswers: 0,
-                pointsEarned: 0,
-                troubledTopics: [],
-                durationMinutes: 0 
-            });
-            saveAppState();
-        }
-
-        // --- Progress Screen Logic ---
-        /**
-         * Updates and displays the progress screen with current stats, badges, and troubled areas.
-         */
-        function updateProgressScreen() {
-            updatePointsAndLevelDisplay(); 
-
-            // Update daily streak display
-            if(progressStreak) progressStreak.textContent = appState.dailyStreak;
-
-            // Populate Badges Display
-            badgesDisplay.innerHTML = '';
-            if (appState.badges.length === 0) {
-                badgesDisplay.innerHTML = '<p class="text-gray-500 text-lg">No badges yet! Keep conquering quests!</p>';
-            } else {
-                appState.badges.forEach(badge => {
-                    const badgeElem = document.createElement('span');
-                    badgeElem.classList.add('p-3', 'bg-yellow-200', 'text-yellow-800', 'rounded-full', 'shadow-md', 'font-semibold', 'text-base', 'flex', 'items-center', 'gap-1', 'justify-center');
-                    badgeElem.innerHTML = `${badge.emoji} ${badge.name}`;
-                    badgesDisplay.appendChild(badgeElem);
-                });
-            }
-
-            // Populate Troubled Areas List
-            troubledAreasList.innerHTML = '';
-            // Filter topics that still have a troubled count > 0
-            const uniqueTroubledTopics = Object.keys(appState.troubledAreas).filter(topic => appState.troubledAreas[topic] > 0);
-            if (uniqueTroubledTopics.length === 0) {
-                troubledAreasList.innerHTML = '<p class="text-gray-500 text-lg">No specific areas to re-explore. Excellent!</p>';
-                startStudySessionButton.classList.add('hidden'); // Hide study button if no trouble
-            } else {
-                uniqueTroubledTopics.forEach(topic => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('mb-2');
-                    // Format topic name nicely (e.g., 'calculations' -> 'Calculations')
-                    listItem.textContent = `${topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} (Flagged: ${appState.troubledAreas[topic]} times)`;
-                    troubledAreasList.appendChild(listItem);
-                });
-                startStudySessionButton.classList.remove('hidden'); // Show study button if there are troubled areas
-            }
-        }
-
-        /**
-         * Initiates an AI-powered study session for the most problematic topic.
-         * Displays a loading indicator and then the AI-generated lesson.
-         */
-        async function startStudySession() {
-            showScreen(studyModeScreen); // Navigate to the study screen
-
-            // Display loading indicator while AI generates content
-            studyModeContent.innerHTML = `
-                <div class="loading-indicator">
-                    <div class="loading-spinner"></div>
-                    <p>Dora is thinking up a brilliant lesson for you...</p>
-                </div>
-            `;
-            
-            // Find the most frequently flagged troubled topic
-            let mostTroubledTopic = null;
-            let maxCount = 0;
-            for (const topic in appState.troubledAreas) {
-                if (appState.troubledAreas[topic] > maxCount) {
-                    maxCount = appState.troubledAreas[topic];
-                    mostTroubledTopic = topic;
-                }
-            }
-
-            if (!mostTroubledTopic) {
-                // Should not happen if button is hidden, but good for robustness
-                studyModeContent.innerHTML = `<p class="text-lg text-gray-700">No troubled areas to study right now. Keep up the great work!</p>`;
-                return;
-            }
-
-            // Format topic name for the AI prompt
-            const cleanTopicName = mostTroubledTopic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            // Construct the prompt for the generative AI
-            const prompt = `Act as Dora the Explorer, a friendly, encouraging, and knowledgeable math tutor. Explain the concept of "${cleanTopicName}" in simple terms suitable for an elementary/middle school student. Provide a clear, step-by-step mini-lesson. Include a simple mathematical example using LaTeX, and conclude with an encouraging remark. Ensure all math is properly formatted with LaTeX using \\( \\) for inline and \\[ \\] for display math. Make it no more than 200 words.`;
-
+        function copyToClipboard(text) {
+            // Using a temporary textarea to copy to clipboard for broader compatibility
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
             try {
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                document.execCommand('copy');
+                showModal('Question copied to clipboard! Paste it into Grok AI (grok.x.ai) for a fun explanation!');
+            } catch (err) {
+                showModal('Failed to copy: ' + err);
+            }
+            document.body.removeChild(textarea);
+        }
 
-                const payload = { contents: chatHistory };
-                const apiKey = ""; // This will be automatically provided by the Canvas environment
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        function checkAnswer(input, btn) {
+            const feedback = btn.nextElementSibling;
+            let userAnswer = input.value.trim().toLowerCase();
+            let correct = input.dataset.correct.toLowerCase();
+            let isCorrect = false;
 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-                // Check if the API response contains valid content
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const lessonText = result.candidates[0].content.parts[0].text;
-                    studyModeContent.innerHTML = `<p class="text-lg text-gray-700">${lessonText}</p>`;
-                    typesetIfMathJaxReady([studyModeContent]); // Typeset the AI-generated lesson
-                } else {
-                    // Handle cases where AI response is unexpected
-                    studyModeContent.innerHTML = `<p class="text-lg text-red-600">Uh oh! Dora couldn't quite generate that lesson. Please try again later!</p>`;
-                    console.error("Gemini API response structure unexpected:", result);
+            if (input.tagName === 'TEXTAREA') {
+                if (userAnswer.includes('no')) {
+                    isCorrect = true;
                 }
-            } catch (error) {
-                // Handle API call errors (e.g., network issues)
-                studyModeContent.innerHTML = `<p class="text-lg text-red-600">Oh no! There was an error fetching the lesson. Check your internet connection or try again!</p>`;
-                console.error("Error fetching study lesson:", error);
+            } else {
+                if (correct === '1' && (userAnswer === 'd' || userAnswer === '1' || userAnswer === 'd.1' || userAnswer === 'd 1')) {
+                    userAnswer = '1';
+                }
+                if (userAnswer === correct) {
+                    isCorrect = true;
+                }
+            }
+
+            if (isCorrect) {
+                feedback.textContent = 'Awesome, Dora! You nailed it! 🎉';
+                feedback.classList.remove('wrong');
+                if (!input.dataset.checked) {
+                    updateShards();
+                    input.dataset.checked = true;
+                }
+            } else {
+                feedback.textContent = 'Oops, not quite! Try again, you’ve got this! 💫';
+                feedback.classList.add('wrong');
+            }
+            feedback.style.display = 'inline';
+        }
+
+        document.querySelectorAll('.idk').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const q = btn.dataset.question;
+                const prompt = `Explain how to solve ${q} using BIDMAS, step by step, like teaching a 13-year-old.`;
+                copyToClipboard(prompt);
+            });
+        });
+
+        document.querySelectorAll('.hint-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const hintId = btn.dataset.hint;
+                const hintDiv = document.getElementById(hintId);
+                hintDiv.style.display = hintDiv.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+
+        document.querySelectorAll('.check-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = btn.previousElementSibling;
+                checkAnswer(input, btn);
+            });
+        });
+
+        document.querySelectorAll('.answer-input').forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const btn = input.nextElementSibling;
+                    checkAnswer(input, btn);
+                }
+            });
+        });
+
+        function updateShards() {
+            shards++;
+            document.getElementById('progress-shards').textContent = shards;
+            if (shards % 10 === 0 && currentLevel < levels.length - 1) {
+                currentLevel++;
+                document.getElementById('adventure-level').textContent = levels[currentLevel];
+                showModal(`Woo-hoo! Level up to ${levels[currentLevel]}! You're a BIDMAS superstar, Dora! 🚀`);
             }
         }
 
-
-        // --- Email Export Logic ---
-        /**
-         * Generates and triggers a mailto link with the user's progress report.
-         */
-        function sendReport() {
-            let reportBody = `Hello,\n\n`;
-            reportBody += `Here's an update on your progress in Dora's Math Quest: Integer Island Expedition!\n\n`;
-            reportBody += `Total Data Shards: ${appState.points}\n`;
-            reportBody += `Current Adventure Level: ${getLevelName(appState.level)} (Level ${appState.level})\n`;
-            reportBody += `Daily Check-in Streak: ${appState.dailyStreak} 🔥\n\n`;
-
-            reportBody += "--- Mastery Badges Earned ---\n";
-            if (appState.badges.length > 0) {
-                appState.badges.forEach(badge => { 
-                    reportBody += `${badge.emoji} ${badge.name}\n`;
-                });
-            } else {
-                reportBody += "No badges earned yet. Keep adventuring!\n";
-            }
-            reportBody += "\n";
-
-            reportBody += "--- Areas to Re-Explore (Topics Flagged) ---\n";
-            const uniqueTroubledTopics = Object.keys(appState.troubledAreas).filter(topic => appState.troubledAreas[topic] > 0);
-            if (uniqueTroubledTopics.length > 0) {
-                uniqueTroubledTopics.forEach(topic => {
-                    reportBody += `- ${topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} (Flagged ${appState.troubledAreas[topic]} times)\n`;
-                });
-            } else {
-                reportBody += "No specific areas needing re-exploration noted. Excellent work!\n";
-            }
-            reportBody += "\n";
-
-            reportBody += "--- Recent Expedition History ---\n";
-            if (appState.sessionHistory.length > 0) {
-                appState.sessionHistory.forEach(session => {
-                    reportBody += `\nSession Date: ${session.date}\n`;
-                    reportBody += `Type: ${session.type}\n`;
-                    reportBody += `Questions Attempted: ${session.questionsAttempted}\n`;
-                    reportBody += `Correct Answers: ${session.correctAnswers}\n`;
-                    reportBody += `Points Earned: ${session.pointsEarned} Data Shards\n`;
-                    if (session.durationMinutes) {
-                        reportBody += `Duration: ${session.durationMinutes} minutes\n`;
-                    }
-                    if (session.troubledTopics && session.troubledTopics.length > 0) {
-                        reportBody += `Topics Flagged in Session: ${session.troubledTopics.map(t => t.replace(/_/g, ' ')).join(', ')}\n`;
-                    }
-                });
-            } else {
-                reportBody += "No recent quest sessions recorded.\n";
-            }
-            reportBody += "\n\nKeep solving mysteries and exploring with Dora!\n";
-
-            const subject = encodeURIComponent("Dora's Math Quest: Expedition Report");
-            const body = encodeURIComponent(reportBody);
-            const mailtoLink = `mailto:your.email@example.com?subject=${subject}&body=${body}`;
-
-            window.location.href = mailtoLink;
+        function resetProgress() {
+            shards = 0;
+            currentLevel = 0;
+            document.getElementById('progress-shards').textContent = shards;
+            document.getElementById('adventure-level').textContent = levels[0];
+            document.querySelectorAll('.feedback').forEach(f => {
+                f.style.display = 'none';
+            });
+            document.querySelectorAll('.answer-input').forEach(i => {
+                i.value = '';
+                delete i.dataset.checked;
+            });
+            document.querySelectorAll('.hint').forEach(h => {
+                h.style.display = 'none';
+            });
         }
 
-
-        // --- Event Listeners (User Interactions) ---
-        // Navigates to the progress screen
-        goToProgressButton.addEventListener('click', () => {
-            showScreen(progressScreen);
-        });
-
-        // Scrolls to the tutorial section on the main landing page
-        goToTutorialSectionBtn.addEventListener('click', () => {
-            tutorialSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-
-        // Scrolls to the practice section on the main landing page
-        goToPracticeSectionBtn.addEventListener('click', () => {
-            practiceSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-
-        // Initiates a study session when the button is clicked
-        startStudySessionButton.addEventListener('click', startStudySession); 
-
-        // Navigates back to the progress screen from the study mode
-        backToProgressFromStudyButton.addEventListener('click', () => { 
-            showScreen(progressScreen);
-            updateProgressScreen(); // Refresh progress display when returning
-        });
-
-        // Navigates back to the main landing page from the progress screen
-        backToLandingButton.addEventListener('click', () => { 
-            showScreen(fullLandingPageContent); 
-        });
-
-        // Triggers the email report generation
-        sendReportButton.addEventListener('click', sendReport);
-
-        // --- Initial Application Load ---
-        window.onload = () => {
-            loadAppState(); // Load saved game state
-            updatePointsAndLevelDisplay(); // Update displays with loaded data
-            loadFullWorksheetContent(); // Dynamically load tutorial and practice questions
-
-            // Fallback for MathJax loading failure: displays a warning if MathJax doesn't load within 5 seconds
-            setTimeout(() => {
-                if (!window.MathJax || !window.MathJax.startup || !window.MathJax.startup.promise) {
-                    console.error("MathJax failed to load after timeout.");
-                    const warning = document.createElement('p');
-                    warning.classList.add('text-red-600', 'text-center', 'mt-4');
-                    warning.textContent = "Unable to load math renderer. Please refresh the page or check your internet connection.";
-                    appContainer.prepend(warning);
-                }
-            }, 5000); 
-        };
-
+        function shareReport() {
+            const report = `Total Shards: ${shards}\nAdventure Level: ${levels[currentLevel]}\nDaily Check-in Streak: 0\nMastery Badges: 🏆\nAreas to Re-Explore: 🚧`;
+            window.location.href = `mailto:trev2005+bilmas@gmail.com?subject=Dora's BIDMAS Report&body=${encodeURIComponent(report)}`;
+        }
     </script>
 </body>
 </html>
