@@ -152,8 +152,8 @@
                 <div id="hint6" class="hint">First expression: $12 - 4 \times (2 + 3) = 12 - 4 \times 5 = 12 - 20 = -8$.<br>Second expression: $12 - 4 \times 2 + 3 = 12 - 8 + 3 = 4 + 3 = 7$.<br>Since $-8 \neq 7$, you do not agree with Alex. Brackets change the order!</div>
             </li>
             <li value="7">
-                <span class="qnum">7.</span> Emily buys 2 apples at $1.50 each, 3 oranges at $0.75 each, and 1 banana at $1.25. Determine the total amount Emily has to pay. <input class="answer-input" data-correct="5.00" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint7">Hint</button> <button class="idk" data-question="Emily buys 2 apples at $1.50 each, 3 oranges at $0.75 each, and 1 banana at $1.25. Total?">I don't know</button>
-                <div id="hint7" class="hint">Apples: $2 \times 1.50 = 3.00$. Oranges: $3 \times 0.75 = 2.25$. Banana: $1.25$. Total: $3.00 + 2.25 + 1.25 = 6.50$. Wait, my calculation was wrong! Should be 5.00! $3.00 + 2.25 + 1.25 = 6.50$. The data correct is wrong. This needs fixing. The correct answer should be 6.50. Let's fix this in the code.</div>
+                <span class="qnum">7.</span> Emily buys 2 apples at $1.50 each, 3 oranges at $0.75 each, and 1 banana at $1.25. Determine the total amount Emily has to pay. <input class="answer-input" data-correct="6.50" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hint7">Hint</button> <button class="idk" data-question="Emily buys 2 apples at $1.50 each, 3 oranges at $0.75 each, and 1 banana at $1.25. Total?">I don't know</button>
+                <div id="hint7" class="hint">Apples: $2 \times 1.50 = 3.00$. Oranges: $3 \times 0.75 = 2.25$. Banana: $1.25$. Total: $3.00 + 2.25 + 1.25 = 6.50$. Multiply quantities first! 🍩</div>
             </li>
         </ol>
         <button onclick="shareReport()">Share Report 📧</button>
@@ -214,6 +214,52 @@
             document.body.removeChild(textarea);
         }
 
+        // Function to safely get the question string from the associated 'idk' button or by parsing
+        function getQuestionString(buttonElement) {
+            // Attempt to get the question text from the data-question attribute of an associated 'idk' button.
+            // This is the most reliable source if available.
+            const idkButton = buttonElement.closest('li').querySelector('.idk');
+            if (idkButton && idkButton.dataset.question) {
+                return idkButton.dataset.question;
+            }
+
+            // Fallback if no 'idk' button with data-question is found.
+            let questionLi;
+            // Check if the button is within a sub-list item (e.g., Q1.a, Q2.b, Q3.a, Q3.b)
+            // If its closest <li> has a parent that is a <ul>, then it's a sub-question.
+            if (buttonElement.closest('li') && buttonElement.closest('li').parentElement && buttonElement.closest('li').parentElement.tagName === 'UL') {
+                // The .qnum is in the parent of the <ul>, which is the main question <li>.
+                questionLi = buttonElement.closest('li').parentElement.closest('li');
+            } else {
+                // This is a top-level question (Q4, Q5, Q6, Q7, or any dynamically added E-questions).
+                // The .qnum is directly inside this <li>.
+                questionLi = buttonElement.closest('li');
+            }
+
+            if (questionLi) {
+                const qnumSpan = questionLi.querySelector('.qnum');
+                if (qnumSpan) {
+                    // Collect the text that immediately follows the .qnum span within this questionLi.
+                    // This handles both simple text and potential LaTeX formatted text.
+                    let textContent = '';
+                    let currentNode = qnumSpan.nextSibling;
+                    // Iterate through sibling nodes until an element node (like <ul> or <br>) is encountered
+                    while (currentNode && currentNode.nodeType !== Node.ELEMENT_NODE) { 
+                        if (currentNode.nodeType === Node.TEXT_NODE) {
+                            textContent += currentNode.textContent;
+                        }
+                        currentNode = currentNode.nextSibling;
+                    }
+                    // Trim and replace multiple spaces
+                    textContent = textContent.replace(/\s+/g, ' ').trim();
+                    if (textContent) {
+                        return textContent;
+                    }
+                }
+            }
+            return 'Unknown Question'; // Fallback if unable to determine the question text
+        }
+
         function checkAnswer(input, btn) {
             const feedback = btn.nextElementSibling;
             let userAnswer = input.value.trim().toLowerCase();
@@ -226,10 +272,9 @@
                     isCorrect = true;
                 }
             } else {
-                // Special handling for the type of question 7 in the original, now 4
-                // Corrected for question 7 (now 4) where 'd' or '1' are correct
-                if (correct === '1' && (userAnswer === 'd' || userAnswer === '1' || userAnswer === 'd.1' || userAnswer === 'd 1')) {
-                    userAnswer = '1'; // Normalize for comparison
+                // Special handling for the type of question 4 (previously 7) where 'a' or '16' are correct
+                if (correct === '16' && (userAnswer === 'a' || userAnswer === '16' || userAnswer === 'a.16' || userAnswer === 'a 16')) { // Corrected for question 4
+                    userAnswer = '16'; // Normalize for comparison
                 }
                 if (userAnswer === correct) {
                     isCorrect = true;
@@ -301,7 +346,7 @@
                     if (hintDiv) {
                         hintDiv.style.display = hintDiv.style.display === 'block' ? 'none' : 'block';
                     }
-                    const questionText = hintBtn.closest('li').querySelector('.qnum').nextSibling.textContent.trim();
+                    const questionText = getQuestionString(hintBtn); // Use the helper function
                     struggledQuestions.add(questionText);
                     
                     // Add new equation if cap not reached
@@ -324,7 +369,9 @@
             if (answerInput) {
                 answerInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
-                        checkAnswer(answerInput, checkBtn);
+                        // Corrected: 'input' is the current element in the forEach loop
+                        const btn = input.nextElementSibling; 
+                        checkAnswer(input, btn); // Pass 'input' and 'btn'
                     }
                 });
             }
@@ -343,6 +390,8 @@
             const practiceQuestionsOl = document.getElementById('practice-questions');
             const newLi = document.createElement('li');
             newLi.innerHTML = equationToAdd.questionHtml;
+            // Append the new question. Assign a temporary value to distinguish from initial questions.
+            newLi.value = `E${addedEquationCount + 1}`; 
             practiceQuestionsOl.appendChild(newLi);
 
             // Re-attach event listeners to the newly added elements
@@ -374,11 +423,7 @@
                 const hintDiv = document.getElementById(hintId);
                 hintDiv.style.display = hintDiv.style.display === 'block' ? 'none' : 'block';
 
-                const questionTextElement = btn.closest('li').querySelector('.qnum').nextSibling;
-                let questionText = questionTextElement ? questionTextElement.textContent.trim() : 'Unknown Question';
-                // Clean up LaTeX formatting for better readability in report if present
-                questionText = questionText.replace(/\$(.*?)\$/g, (match, p1) => p1.replace(/\\times/g, 'x').replace(/\\div/g, '/').replace(/\^/g, '^')).trim();
-
+                const questionText = getQuestionString(btn); // Use the helper function
                 struggledQuestions.add(questionText); // Track the question
 
                 // Add new equation if cap not reached
@@ -403,8 +448,9 @@
         document.querySelectorAll('.answer-input').forEach(input => {
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    const btn = input.nextElementSibling;
-                    checkAnswer(input, btn);
+                    // Corrected: 'input' is the current element in the forEach loop
+                    const btn = input.nextElementSibling; 
+                    checkAnswer(input, btn); // Pass 'input' and 'btn'
                 }
             });
         });
@@ -439,17 +485,13 @@
             });
             // Re-initialize original questions and remove dynamically added ones
             const practiceQuestionsOl = document.getElementById('practice-questions');
-            // Remove all dynamically added list items (those without a value attribute)
-            const initialQuestionCount = 7; // Based on the initial number of <li> elements I put in the HTML
+            // Remove all dynamically added list items (those without a value attribute, or with values starting with 'E')
+            const initialQuestionCount = 7; 
             while (practiceQuestionsOl.children.length > initialQuestionCount) {
                 practiceQuestionsOl.removeChild(practiceQuestionsOl.lastChild);
             }
             // Re-attach listeners to ensure they are fresh for existing questions if needed
-            document.querySelectorAll('#practice-questions > li').forEach(li => {
-                // Remove existing listeners to prevent duplicates (though careful handling is better)
-                // For simplicity here, re-attach all, which is safe if not duplicating during initial load
-                // A better approach for reset would be to re-render the whole static practice section
-            });
+            // This part is handled by the DOMContentLoaded listener on page load or by the specific attachEventListenersToNewQuestion
         }
 
         function shareReport() {
@@ -486,6 +528,10 @@
                     hintDiv.innerHTML = `Yummy math! Apples: $2 \\times 1.50 = 3.00$. Oranges: $3 \\times 0.75 = 2.25$. Banana: $1.25$. Total: $3.00 + 2.25 + 1.25 = 6.50$. Multiply quantities first! 🍩`;
                  }
             }
+            // Also ensure event listeners are set up for all initial questions
+            document.querySelectorAll('#practice-questions > li').forEach(li => {
+                attachEventListenersToNewQuestion(li);
+            });
         });
     </script>
 </body>
