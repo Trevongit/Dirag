@@ -57,6 +57,20 @@
             cursor: pointer;
         }
     </style>
+    <!-- MathJax for rendering LaTeX equations -->
+    <script type="text/javascript" id="MathJax-script" async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
 </head>
 <body>
 
@@ -173,7 +187,8 @@
         let currentLevel = 0;
         const struggledQuestions = new Set(); // To track questions where hints were asked or 'I don't know' clicked
         let addedEquationCount = 0;
-        const maxExtraEquations = 5; // Maximum number of extra equations to add dynamically
+        const maxExtraEquations = 93; // Maximum number of extra equations to add dynamically (total 100 with initial 7)
+        let modalTimeoutId; // To store the timeout ID for the modal
 
         // Get the modal
         const modal = document.getElementById("myModal");
@@ -183,18 +198,25 @@
 
         // Function to display the modal
         function showModal(message) {
+            clearTimeout(modalTimeoutId); // Clear any existing timeout
             modalMessage.textContent = message;
             modal.style.display = "flex"; // Use flex to center the content
+            // Set timeout to close modal after 5 seconds
+            modalTimeoutId = setTimeout(() => {
+                modal.style.display = "none";
+            }, 5000);
         }
 
         // When the user clicks on <span> (x), close the modal
         span.onclick = function() {
+            clearTimeout(modalTimeoutId); // Clear timeout if manually closed
             modal.style.display = "none";
         }
 
         // When the user clicks anywhere outside of the modal, close it
         window.onclick = function(event) {
             if (event.target == modal) {
+                clearTimeout(modalTimeoutId); // Clear timeout if manually closed
                 modal.style.display = "none";
             }
         }
@@ -309,7 +331,7 @@
                     <span class="qnum">E2.</span> Calculate: $ 18 \div (6 - 3) + 4 $ <input class="answer-input" data-correct="10" type="text"><button class="check-btn">Check</button><span class="feedback"></span> <button class="hint-btn" data-hint="hintE2">Hint</button> <button class="idk" data-question="18 ÷ (6 - 3) + 4">I don't know</button>
                     <div id="hintE2" class="hint">Brackets first: $6 - 3 = 3$. Then divide: $18 \div 3 = 6$. Finally, add: $6 + 4 = 10$.</div>
                 `,
-                idkQuestion: "18 ÷ (6 - 3) + 4"
+                idkQuestion: "18 ÷ (6 - 3) + 4" // Corrected from iddQuestion
             },
             {
                 questionHtml: `
@@ -1028,6 +1050,13 @@
                     } else {
                         showModal("Max extra challenges added! Review the tutorials for more help.");
                     }
+                     // Render MathJax for the newly added hint content
+                    // Ensure MathJax is ready before typesetting
+                    if (typeof MathJax !== 'undefined' && MathJax.startup && MathJax.startup.promise) {
+                        MathJax.startup.promise.then(() => {
+                            MathJax.typesetPromise([hintDiv]);
+                        });
+                    }
                 });
             }
             if (idkBtn) {
@@ -1070,13 +1099,34 @@
             // Re-attach event listeners to the newly added elements
             attachEventListenersToNewQuestion(newLi);
             addedEquationCount++;
+
+            // Render MathJax for the newly added equation
+            // Ensure MathJax is ready before typesetting
+            if (typeof MathJax !== 'undefined' && MathJax.startup && MathJax.startup.promise) {
+                MathJax.startup.promise.then(() => {
+                    MathJax.typesetPromise([newLi]);
+                });
+            }
         }
 
-        // Initial attachment of event listeners to static questions
+        // Initial attachment of event listeners to static questions and initial MathJax render
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('#practice-questions > li').forEach(li => {
-                attachEventListenersToNewQuestion(li);
-            });
+            // Ensure MathJax is ready before performing operations that require it
+            if (typeof MathJax !== 'undefined' && MathJax.startup && MathJax.startup.promise) {
+                MathJax.startup.promise.then(() => {
+                    document.querySelectorAll('#practice-questions > li').forEach(li => {
+                        attachEventListenersToNewQuestion(li);
+                    });
+                    // Initial render of MathJax for all static equations
+                    MathJax.typesetPromise();
+                });
+            } else {
+                console.warn("MathJax is not loaded or ready. Equations may not render correctly.");
+                // Fallback: Attach event listeners without MathJax typesetting
+                document.querySelectorAll('#practice-questions > li').forEach(li => {
+                    attachEventListenersToNewQuestion(li);
+                });
+            }
         });
 
         // Event listener for IDK buttons (initial setup)
@@ -1090,11 +1140,18 @@
         });
 
         // Event listener for Hint buttons (initial setup)
+        // This block is redundant after the refactor in attachEventListenersToNewQuestion,
+        // but keeping it for clarity as initial setup for static elements might differ
+        // from dynamic elements if not handled by a unified function.
+        // However, the current attachEventListenersToNewQuestion handles both, so this can be removed.
+        // For now, making it wait for MathJax just in case.
         document.querySelectorAll('.hint-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const hintId = btn.dataset.hint;
                 const hintDiv = document.getElementById(hintId);
-                hintDiv.style.display = hintDiv.style.display === 'block' ? 'none' : 'block';
+                if (hintDiv) {
+                    hintDiv.style.display = hintDiv.style.display === 'block' ? 'none' : 'block';
+                }
 
                 const questionText = getQuestionString(btn); // Use the helper function
                 struggledQuestions.add(questionText); // Track the question
@@ -1105,6 +1162,13 @@
                     showModal("New challenge added for extra practice!");
                 } else {
                     showModal("Max extra challenges added! Review the tutorials for more help.");
+                }
+                // Render MathJax for the hint content
+                // Ensure MathJax is ready before typesetting
+                if (typeof MathJax !== 'undefined' && MathJax.startup && MathJax.startup.promise) {
+                    MathJax.startup.promise.then(() => {
+                        MathJax.typesetPromise([hintDiv]);
+                    });
                 }
             });
         });
@@ -1164,8 +1228,12 @@
             while (practiceQuestionsOl.children.length > initialQuestionCount) {
                 practiceQuestionsOl.removeChild(practiceQuestionsOl.lastChild);
             }
-            // Re-attach listeners to ensure they are fresh for existing questions if needed
-            // This part is handled by the DOMContentLoaded listener on page load or by the specific attachEventListenersToNewQuestion
+            // Re-render MathJax for the remaining static questions after reset
+            if (typeof MathJax !== 'undefined' && MathJax.startup && MathJax.startup.promise) {
+                MathJax.startup.promise.then(() => {
+                    MathJax.typesetPromise();
+                });
+            }
         }
 
         function shareReport() {
@@ -1200,12 +1268,16 @@
                 const hintDiv = document.getElementById('hint7');
                  if (hintDiv) {
                     hintDiv.innerHTML = `Yummy math! Apples: $2 \\times 1.50 = 3.00$. Oranges: $3 \\times 0.75 = 2.25$. Banana: $1.25$. Total: $3.00 + 2.25 + 1.25 = 6.50$. Multiply quantities first! 🍩`;
+                    // Ensure MathJax is ready before typesetting
+                    if (typeof MathJax !== 'undefined' && MathJax.startup && MathJax.startup.promise) {
+                        MathJax.startup.promise.then(() => {
+                            MathJax.typesetPromise([hintDiv]);
+                        });
+                    }
                  }
             }
-            // Also ensure event listeners are set up for all initial questions
-            document.querySelectorAll('#practice-questions > li').forEach(li => {
-                attachEventListenersToNewQuestion(li);
-            });
+            // The main event listener attachment for initial questions is now handled within MathJax.startup.promise.then()
+            // in the DOMContentLoaded block above, making this redundant for initial setup.
         });
     </script>
 </body>
